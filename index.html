@@ -3,33 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube クローン</title>
+    <title>YouTube Clone</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Roboto", "Arial", sans-serif; background-color: #ffffff; color: #0f0f0f; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* ── ヘッダーエリア ── */
+        /* ── ヘッダー ── */
         header { background-color: #ffffff; height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; border-bottom: 1px solid #f2f2f2; }
         .header-left { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
         .menu-icon { font-size: 20px; cursor: pointer; color: #0f0f0f; padding: 8px; }
-        .logo { font-size: 20px; font-weight: bold; color: #0f0f0f; text-decoration: none; display: flex; align-items: center; gap: 4px; letter-spacing: -1px; cursor: pointer; }
-        .logo span { color: #ff0000; font-size: 24px; }
+        .logo { font-size: 18px; font-weight: bold; color: #0f0f0f; text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+        .logo-icon { width: 28px; height: 20px; background-color: #ff0000; border-radius: 4px; position: relative; }
+        .logo-icon::after { content: ''; position: absolute; top: 5px; left: 11px; border-left: 8px solid white; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
         
         .header-center { flex-grow: 1; max-width: 600px; display: flex; align-items: center; margin: 0 20px; }
         .search-box { width: 100%; display: flex; align-items: center; }
         .search-box input { width: 100%; background-color: #ffffff; border: 1px solid #ccc; border-radius: 40px 0 0 40px; padding: 0 16px; color: #0f0f0f; height: 40px; font-size: 16px; outline: none; }
         .search-box button { background-color: #f8f8f8; border: 1px solid #ccc; border-left: none; border-radius: 0 40px 40px 0; padding: 0 24px; color: #0f0f0f; cursor: pointer; height: 40px; }
         
-        /* アカウントメニューの飛び出しを防ぐ親要素設定 */
         .header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; position: relative; }
-        
-        .notification-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .notification-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; }
         .notification-btn:hover { background-color: #f2f2f2; }
 
         .account-avatar { width: 38px; height: 38px; background-color: #065fd4; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 14px; border: none; background-size: cover; background-position: center; flex-shrink: 0; }
-        .user-info-text { font-size: 12px; color: #606060; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+        .user-info-text { font-size: 12px; color: #606060; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-        /* 右端にぴったり合わせ、絶対に画面外に飛び出さないメニュー */
+        /* アカウントメニュー（絶対に右端から飛び出さない配置） */
         .account-menu { position: absolute; top: 50px; right: 0; background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 12px; width: 180px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); display: none; flex-direction: column; overflow: hidden; z-index: 101; }
         .account-menu-item { padding: 12px 16px; font-size: 14px; text-align: left; background: none; border: none; color: #0f0f0f; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 10px; width: 100%; }
         .account-menu-item:hover { background-color: #f2f2f2; }
@@ -42,22 +41,23 @@
         .nav-item:hover { background-color: #f2f2f2; }
         .nav-item.active { background-color: #f2f2f2; font-weight: bold; }
 
-        .content-wrapper { flex-grow: 1; padding: 24px; overflow-y: auto; background-color: #ffffff; display: flex; flex-direction: column; gap: 32px; }
+        /* コンテンツエリア */
+        .content-wrapper { flex-grow: 1; padding: 24px; overflow-y: auto; background-color: #ffffff; display: flex; flex-direction: column; gap: 32px; scroll-behavior: smooth; }
         .section-container { display: flex; flex-direction: column; gap: 16px; position: relative; }
         .section-title { font-size: 20px; font-weight: bold; color: #0f0f0f; }
 
-        /* 通知セクション */
+        /* 通知枠 */
         .notification-row { display: flex; gap: 16px; align-items: center; background-color: #f9f9f9; padding: 16px; border-radius: 12px; border: 1px solid #eee; overflow-x: auto; min-height: 60px; }
-        .empty-message { font-size: 14px; color: #606060; font-style: italic; }
+        .empty-message { font-size: 14px; color: #606060; }
 
-        /* 動画グリッド（横スクロール） */
+        /* 横スクロールラッパー */
         .horizontal-scroll-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
         .video-grid-horizontal { display: flex; gap: 16px; overflow-x: auto; scroll-behavior: smooth; width: 100%; padding-bottom: 8px; min-height: 40px; }
         .video-grid-horizontal::-webkit-scrollbar { display: none; }
         
         /* 通常動画カード */
-        .video-card { min-width: 280px; width: 280px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; position: relative; }
-        .video-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #e5e5e5; border-radius: 12px; overflow: hidden; }
+        .video-card { min-width: 280px; width: 280px; display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
+        .video-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000000; border-radius: 12px; overflow: hidden; }
         .video-thumbnail-wrapper video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; }
         
@@ -67,21 +67,21 @@
         .video-title { font-size: 14px; font-weight: bold; line-height: 18px; color: #0f0f0f; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .video-sub-info { font-size: 12px; color: #606060; margin-top: 2px; }
 
-        /* ショート動画カード */
+        /* ショート動画カード（縦型） */
         .shorts-card { min-width: 160px; width: 160px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
-        .shorts-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 9/16; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; }
+        .shorts-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 9/16; background-color: #000000; border-radius: 12px; overflow: hidden; }
         .shorts-thumbnail-wrapper video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         .shorts-title { font-size: 13px; font-weight: bold; color: #0f0f0f; line-height: 16px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
         /* スクロールボタン */
-        .scroll-next-btn { position: absolute; right: -15px; width: 40px; height: 40px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-weight: bold; }
-        .scroll-next-btn:hover { background-color: #f2f2f2; transform: scale(1.05); }
+        .scroll-next-btn { position: absolute; right: -15px; width: 40px; height: 40px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; }
+        .scroll-next-btn:hover { background-color: #f2f2f2; }
 
-        /* アップロード用モーダル */
+        /* ポップアップモーダル（投稿・配信） */
         .dashboard-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center; }
         .dashboard-modal { background-color: #ffffff; width: 90%; max-width: 600px; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 12px; }
-        .dashboard-title-text { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .dashboard-title-text { font-size: 20px; font-weight: bold; }
         .close-dashboard-btn { background: none; border: none; color: #606060; font-size: 28px; cursor: pointer; }
         .upload-form-group { display: flex; flex-direction: column; gap: 16px; }
         .upload-form-group input[type="text"] { border: 1px solid #ccc; padding: 12px; border-radius: 8px; font-size: 14px; outline: none; width: 100%; }
@@ -96,7 +96,7 @@
     <header>
         <div class="header-left">
             <div class="menu-icon">☰</div>
-            <a href="#" class="logo" id="logoHome"><span>🛑</span>YouTube</a>
+            <a href="#" class="logo" id="logoHome"><div class="logo-icon"></div>YouTube Clone</a>
         </div>
         <div class="header-center">
             <div class="search-box">
@@ -106,14 +106,12 @@
         </div>
         <div class="header-right">
             <button class="notification-btn" id="notiBtn">🔔</button>
-            
             <div id="userInfo" class="user-info-text"></div>
             <button id="authBtn" class="account-avatar">👤</button>
 
             <div id="accountMenu" class="account-menu">
                 <button id="menuNewPost" class="account-menu-item">🎥 新規投稿</button>
                 <button id="menuLive" class="account-menu-item">🔴 ライブ配信</button>
-                <button id="menuSetting" class="account-menu-item">⚙️ アカウント設定</button>
                 <button id="menuLogout" class="account-menu-item logout">🚪 ログアウト</button>
             </div>
         </div>
@@ -124,19 +122,19 @@
             <div class="nav-item active" id="sideHome">🏠 ホーム</div>
             <div class="nav-item" id="sideShorts">🩳 ショート</div>
             <div class="nav-item" id="sideSubs">🔔 登録者</div>
-            <div class="nav-item" id="sideTrending">🔥 トレンド</div>
+            <div class="nav-item" id="sideTrending">✨ なんか</div>
             <div class="nav-item" id="sideSetting">⚙️ 設定</div>
         </aside>
 
-        <div class="content-wrapper">
-            <div class="section-container">
+        <div class="content-wrapper" id="contentWrapper">
+            <div class="section-container" id="sec-noti">
                 <div class="section-title">通知</div>
-                <div class="notification-row" id="notificationRow">
+                <div class="notification-row">
                     <div class="empty-message">新しい通知はありません。</div>
                 </div>
             </div>
 
-            <div class="section-container">
+            <div class="section-container" id="sec-recommend">
                 <div class="section-title">おすすめ</div>
                 <div class="horizontal-scroll-wrapper">
                     <div class="video-grid-horizontal" id="videoGrid">
@@ -146,7 +144,7 @@
                 </div>
             </div>
 
-            <div class="section-container">
+            <div class="section-container" id="sec-shorts">
                 <div class="section-title">ショート</div>
                 <div class="horizontal-scroll-wrapper">
                     <div class="video-grid-horizontal" id="shortsGrid">
@@ -161,14 +159,11 @@
     <div id="dashboardOverlay" class="dashboard-overlay">
         <div class="dashboard-modal">
             <div class="dashboard-header">
-                <h2 id="modalTitle" class="dashboard-title-text">🎥 動画のアップロード（新規投稿）</h2>
+                <h2 id="modalTitle" class="dashboard-title-text">🎥 動画のアップロード</h2>
                 <button id="dashboardCloseBtn" class="close-dashboard-btn">×</button>
             </div>
-            
             <div class="upload-form-group">
-                <div>
-                    <input type="text" id="videoTitle" placeholder="タイトルを追加（必須）">
-                </div>
+                <input type="text" id="videoTitle" placeholder="タイトルを追加（必須）">
                 <div class="file-input-wrapper">
                     <div class="file-box">
                         <label>🎥 動画ファイル</label>
@@ -180,7 +175,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="dashboard-footer">
                 <button id="uploadBtn" class="submit-btn">公開</button>
             </div>
@@ -195,46 +189,47 @@
         const accountMenu = document.getElementById('accountMenu');
         const dashboardOverlay = document.getElementById('dashboardOverlay');
         const modalTitle = document.getElementById('modalTitle');
+        const contentWrapper = document.getElementById('contentWrapper');
 
-        // メニューの表示切り替え
+        // メニュー開閉
         authBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             accountMenu.style.display = accountMenu.style.display === 'flex' ? 'none' : 'flex';
         });
-
         document.addEventListener('click', () => { accountMenu.style.display = 'none'; });
 
-        // ナビゲーション・ホームリロード
+        // ポップアップ警告を出さず、対応するセクションまで自動スクロールする挙動に変更
         document.getElementById('logoHome').addEventListener('click', () => location.reload());
-        document.getElementById('sideHome').addEventListener('click', () => location.reload());
+        document.getElementById('sideHome').addEventListener('click', () => {
+            contentWrapper.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        document.getElementById('sideShorts').addEventListener('click', () => {
+            document.getElementById('sec-shorts').scrollIntoView({ behavior: 'smooth' });
+        });
+        document.getElementById('sideSubs').addEventListener('click', () => {
+            document.getElementById('sec-noti').scrollIntoView({ behavior: 'smooth' });
+        });
+        document.getElementById('sideTrending').addEventListener('click', () => {
+            document.getElementById('sec-recommend').scrollIntoView({ behavior: 'smooth' });
+        });
 
-        // 新規投稿クリック時
+        // モーダル制御
         document.getElementById('menuNewPost').addEventListener('click', () => {
             modalTitle.innerHTML = '🎥 動画のアップロード（新規投稿）';
             dashboardOverlay.style.display = 'flex';
         });
-
-        // ライブ配信クリック時
         document.getElementById('menuLive').addEventListener('click', () => {
             modalTitle.innerHTML = '🔴 ライブ配信の設定';
             dashboardOverlay.style.display = 'flex';
         });
 
-        // スクロール制御
+        // スクロール矢印
         document.getElementById('scrollNextVideos').addEventListener('click', () => {
             document.getElementById('videoGrid').scrollBy({ left: 300, behavior: 'smooth' });
         });
         document.getElementById('scrollNextShorts').addEventListener('click', () => {
             document.getElementById('shortsGrid').scrollBy({ left: 200, behavior: 'smooth' });
         });
-
-        // 通知・その他ボタンのダミーイベント
-        document.getElementById('notiBtn').addEventListener('click', () => alert('新しい通知はありません。'));
-        document.getElementById('menuSetting').addEventListener('click', () => alert('アカウント設定画面を開きます。'));
-        document.getElementById('sideShorts').addEventListener('click', () => alert('ショート動画セクションです。'));
-        document.getElementById('sideSubs').addEventListener('click', () => alert('登録チャンネルの一覧です。'));
-        document.getElementById('sideTrending').addEventListener('click', () => alert('トレンド動画の一覧です。'));
-        document.getElementById('sideSetting').addEventListener('click', () => alert('設定画面を開きます。'));
     </script>
 </body>
 </html>
