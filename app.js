@@ -1,21 +1,22 @@
 const SUPABASE_URL = "https://qjhzrofmxadaurelkeuc.supabase.co";
 const SUPABASE_KEY = "sb_publishable_-7jdEH1uLg8gJCCXkQaJ0g_2ZcoLm52";
 
-const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// Supabaseクライアントの初期化
+const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let currentUser = null;
 
-// 画面の読み込みが完全に完了してから実行する
+// 画面の読み込み完了時にイベントを登録
 window.addEventListener('load', async () => {
-    console.log("YouTubeクローン：スクリプトが正常に開始されました。");
+    console.log("YouTube Clone: システムが正常に起動しました。");
 
-    // 1. ログイン状態の監視を設定
-    supabase.auth.onAuthStateChange((event, session) => {
+    // 1. ログイン状態の監視を開始
+    _supabase.auth.onAuthStateChange((event, session) => {
         currentUser = session ? session.user : null;
         updateAuthUI();
         fetchVideos("");
     });
 
-    // 各種ボタンのイベント紐付け
+    // 各種UI要素の取得とイベントリスナーの登録
     const uploadBtn = document.getElementById('uploadBtn');
     const searchBtn = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
@@ -28,19 +29,18 @@ window.addEventListener('load', async () => {
         uploadBtn.addEventListener('click', handleUpload);
     }
     if (authBtn) {
-        // ボタンに直接クリックイベントを確実に付与
         authBtn.addEventListener('click', handleAuth);
     }
 });
 
-// 認証UI（ログイン状態の表示）の切り替え
+// 認証状態に応じてUIを更新する関数
 function updateAuthUI() {
     const authBtn = document.getElementById('authBtn');
     const userInfo = document.getElementById('userInfo');
     const uploadBox = document.getElementById('uploadBox');
     const loginAlert = document.getElementById('loginAlert');
 
-    if (!authBtn) return; // 要素がない場合はスキップ
+    if (!authBtn) return;
 
     if (currentUser) {
         authBtn.innerText = "ログアウト";
@@ -55,12 +55,11 @@ function updateAuthUI() {
     }
 }
 
-// ログイン・新規登録の処理
+// ログイン・新規登録の処理を行う関数
 async function handleAuth() {
     if (currentUser) {
-        // ログイン中の場合はログアウト処理
-        const { error } = await supabase.auth.signOut();
-        if (error) alert("ログアウト失敗: " + error.message);
+        const { error } = await _supabase.auth.signOut();
+        if (error) alert("ログアウトに失敗しました: " + error.message);
         return;
     }
 
@@ -69,49 +68,50 @@ async function handleAuth() {
     const password = prompt("パスワードを入力してください（6文字以上）:");
     if (!password) return;
 
-    // 1. 最初にログインを試みる
-    let { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    // 既存アカウントでのログインを試行
+    let { data, error } = await _supabase.auth.signInWithPassword({ email, password });
     
-    // 2. ログインに失敗した場合は新規登録を試みる
+    // ログイン失敗時は新規アカウント作成を試行
     if (error) {
-        console.log("ログイン失敗。新規アカウント作成に切り替えます:", error.message);
-        let { data: signUpData, error: signUpError } = await supabase.auth.signUp({ email, password });
+        console.log("アカウントが存在しないか未確認のため、新規登録を試みます:", error.message);
+        let { data: signUpData, error: signUpError } = await _supabase.auth.signUp({ email, password });
         
         if (signUpError) {
-            alert("ログイン・新規登録ともに失敗しました:\n" + signUpError.message);
+            alert("ログインおよび新規登録に失敗しました:\n" + signUpError.message);
         } else {
-            alert("アカウントの作成とログインが完了しました！");
+            alert("新しくアカウントを作成し、ログインしました。");
         }
     } else {
-        alert("ログインに成功しました！");
+        alert("ログインに成功しました。");
     }
 }
 
-// 動画一覧の取得
+// 動画一覧を取得して表示する関数
 async function fetchVideos(searchQuery = "") {
     const videoGrid = document.getElementById('videoGrid');
     if (!videoGrid) return;
-    videoGrid.innerHTML = "<p style='color:#aaa;'>読み込み中...</p>";
+    videoGrid.innerHTML = "<p style='color:#aaa;'>動画を読み込み中です...</p>";
     
-    let query = supabase.from('videos').select('*').order('created_at', { ascending: false });
+    let query = _supabase.from('videos').select('*').order('created_at', { ascending: false });
     if (searchQuery.trim() !== "") {
         query = query.ilike('title', `%${searchQuery}%`);
     }
 
     const { data: videos, error } = await query;
     if (error) {
-        videoGrid.innerHTML = "<p style='color:red;'>動画の取得に失敗しました。</p>";
+        videoGrid.innerHTML = "<p style='color:red;'>動画データの取得に失敗しました。</p>";
         return;
     }
 
     videoGrid.innerHTML = "";
     if (videos.length === 0) {
-        videoGrid.innerHTML = "<p style='color:#aaa;'>動画がありません。</p>";
+        videoGrid.innerHTML = "<p style='color:#aaa;'>該当する動画がありません。</p>";
         return;
     }
 
     for (const video of videos) {
-        const { data: comments } = await supabase
+        // 動画に関連するコメントを取得
+        const { data: comments } = await _supabase
             .from('comments')
             .select('*')
             .eq('video_id', video.id)
@@ -122,17 +122,17 @@ async function fetchVideos(searchQuery = "") {
         
         let thumbHtml = '';
         if (video.thumbnail_url) {
-            thumbHtml = `<div class="thumbnail-img" style="background-image: url('${video.thumbnail_url}');" onclick="this.remove()"></div>`;
+            thumbHtml = `<div class="thumbnail-img" style="background-image: url('${video.thumbnail_url}');"></div>`;
         }
 
         let commentsHtml = '';
         if (comments && comments.length > 0) {
             commentsHtml = comments.map(c => `<div class="comment-item">${escapeHtml(c.content)}</div>`).join('');
         } else {
-            commentsHtml = `<div class="comment-item" style="color:#666;">コメントなし</div>`;
+            commentsHtml = `<div class="comment-item" style="color:#666;">コメントはまだありません。</div>`;
         }
 
-        // 自分が投稿した動画か判定
+        // 投稿者本人の場合のみ削除ボタンを表示
         const isMyVideo = currentUser && video.user_id === currentUser.id;
         const deleteBtnHtml = isMyVideo ? `<button class="delete-btn" style="display:block;" onclick="deleteVideo(${video.id})">🗑️</button>` : '';
 
@@ -146,7 +146,7 @@ async function fetchVideos(searchQuery = "") {
                 <div class="video-meta">
                     <p class="video-title">${escapeHtml(video.title)}</p>
                     ${deleteBtnHtml}
-                    <p class="channel-name" style="font-size:12px; color:#aaa;">投稿者ID: ${video.user_id ? video.user_id.substring(0,6) : 'ゲスト'}</p>
+                    <p class="channel-name" style="font-size:12px; color:#aaa;">投稿者: ${video.user_id ? video.user_id.substring(0,6) : 'ゲスト'}</p>
                     <div class="comment-section">
                         <div class="comment-list">
                             ${commentsHtml}
@@ -163,7 +163,7 @@ async function fetchVideos(searchQuery = "") {
     }
 }
 
-// アップロード処理
+// 動画およびサムネイルをアップロードする関数
 async function handleUpload() {
     if (!currentUser) {
         alert("動画を投稿するにはログインが必要です。");
@@ -188,45 +188,48 @@ async function handleUpload() {
     uploadBtn.innerText = "アップロード中...";
 
     try {
+        // 動画ファイルのアップロード
         const cleanVideoName = `${Date.now()}_video.mp4`;
-        const { error: videoError } = await supabase.storage.from('video-bucket').upload(cleanVideoName, videoFile);
+        const { error: videoError } = await _supabase.storage.from('video-bucket').upload(cleanVideoName, videoFile);
         if (videoError) throw videoError;
-        const { data: { publicUrl: videoUrl } } = supabase.storage.from('video-bucket').getPublicUrl(cleanVideoName);
+        const { data: { publicUrl: videoUrl } } = _supabase.storage.from('video-bucket').getPublicUrl(cleanVideoName);
 
+        // サムネイルファイルのアップロード（任意）
         let thumbnailUrl = null;
         if (thumbFile) {
             const cleanThumbName = `${Date.now()}_thumb.jpg`;
-            const { error: thumbError } = await supabase.storage.from('video-bucket').upload(cleanThumbName, thumbFile);
+            const { error: thumbError } = await _supabase.storage.from('video-bucket').upload(cleanThumbName, thumbFile);
             if (thumbError) throw thumbError;
-            const { data: { publicUrl: pUrl } } = supabase.storage.from('video-bucket').getPublicUrl(cleanThumbName);
+            const { data: { publicUrl: pUrl } } = _supabase.storage.from('video-bucket').getPublicUrl(cleanThumbName);
             thumbnailUrl = pUrl;
         }
 
-        const { error: dbError } = await supabase
+        // データベースに投稿情報を保存
+        const { error: dbError } = await _supabase
             .from('videos')
-            .insert([{ title: title, video_url: videoUrl, thumbnail_url: thumbnailUrl, user_id: currentUser.id }]);
+            .insert([{ title: title, video_url: videoUrl, thumbnailUrl: thumbnailUrl, user_id: currentUser.id }]);
 
         if (dbError) throw dbError;
 
-        alert("動画の公開に成功しました！");
+        alert("動画の公開に成功しました。");
         videoTitleInput.value = "";
         videoFileInput.value = "";
         thumbFileInput.value = "";
         fetchVideos("");
 
     } catch (error) {
-        alert("投稿に失敗しました: " + error.message);
+        alert("投稿エラーが発生しました: " + error.message);
     } finally {
         uploadBtn.disabled = false;
         uploadBtn.innerText = "公開";
     }
 }
 
-// 動画削除処理
+// 動画を削除する関数
 window.deleteVideo = async function(videoId) {
     if (!confirm("本当にこの動画を削除しますか？")) return;
 
-    const { error } = await supabase
+    const { error } = await _supabase
         .from('videos')
         .delete()
         .eq('id', videoId);
@@ -239,14 +242,14 @@ window.deleteVideo = async function(videoId) {
     }
 };
 
-// コメント投稿処理
+// コメントを追加する関数
 window.addComment = async function(videoId) {
     const input = document.getElementById(`input-${videoId}`);
     if (!input) return;
     const content = input.value;
     if (!content) return;
 
-    const { error } = await supabase.from('comments').insert([{ video_id: videoId, content: content }]);
+    const { error } = await _supabase.from('comments').insert([{ video_id: videoId, content: content }]);
     if (error) {
         alert("コメントの送信に失敗しました: " + error.message);
     } else {
@@ -256,6 +259,7 @@ window.addComment = async function(videoId) {
     }
 };
 
+// HTMLエスケープ処理（セキュリティ対策）
 function escapeHtml(str) {
     return str.replace(/[&<>"']/g, function(m) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
