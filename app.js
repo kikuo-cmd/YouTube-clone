@@ -1,280 +1,184 @@
-const SUPABASE_URL = "https://qjhzrofmxadaurelkeuc.supabase.co";
-const SUPABASE_KEY = "sb_publishable_-7jdEH1uLg8gJCCXkQaJ0g_2ZcoLm52";
+// 提供してもらったSupabaseの接続情報
+const SUPABASE_URL = 'https://qjhzrofmxadaurelkeuc.supabase.co'; 
+const SUPABASE_ANON_KEY = 'sb_publishable_-7jdEH1uLg8gJCCXkQaJ0g_2ZcoLm52';
 
-// Supabaseクライアントの初期化
-const _supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let currentUser = null;
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 画面の読み込み完了時にイベントを登録
-window.addEventListener('load', async () => {
-    console.log("YouTube Clone: システムが正常に起動しました。");
+// 画面の要素を取得
+const authBtn = document.getElementById('authBtn');
+const userInfo = document.getElementById('userInfo');
+const videoGrid = document.getElementById('videoGrid');
+const dashboardOverlay = document.getElementById('dashboardOverlay');
+const dashboardCloseBtn = document.getElementById('dashboardCloseBtn');
+const uploadBtn = document.getElementById('uploadBtn');
 
-    // 1. ログイン状態の監視を開始
-    _supabase.auth.onAuthStateChange((event, session) => {
-        currentUser = session ? session.user : null;
-        updateAuthUI();
-        fetchVideos("");
-    });
+const videoTitleInput = document.getElementById('videoTitle');
+const videoFileInput = document.getElementById('videoFile');
+const thumbFileInput = document.getElementById('thumbFile');
 
-    // 各種UI要素の取得とイベントリスナーの登録
-    const uploadBtn = document.getElementById('uploadBtn');
-    const searchBtn = document.getElementById('searchBtn');
-    const searchInput = document.getElementById('searchInput');
-    const authBtn = document.getElementById('authBtn');
-    const dashboardOpenBtn = document.getElementById('dashboardOpenBtn');
-    const dashboardCloseBtn = document.getElementById('dashboardCloseBtn');
+const searchInput = document.getElementById('searchInput');
+const searchBtn = document.getElementById('searchBtn');
 
-    if (searchBtn && searchInput) {
-        searchBtn.addEventListener('click', () => fetchVideos(searchInput.value));
+// ── 1. ログイン状態のチェック ──
+async function checkUser() {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+        authBtn.innerText = user.email.substring(0, 2).toUpperCase();
+        userInfo.innerText = user.email;
+        if (user.user_metadata && user.user_metadata.avatar_url) {
+            authBtn.style.backgroundImage = `url('${user.user_metadata.avatar_url}')`;
+            authBtn.innerText = '';
+        }
+    } else {
+        authBtn.innerText = '👤';
+        userInfo.innerText = '';
+        authBtn.style.backgroundImage = 'none';
     }
-    if (uploadBtn) {
-        uploadBtn.addEventListener('click', handleUpload);
-    }
-    if (authBtn) {
-        authBtn.addEventListener('click', handleAuth);
-    }
+}
 
-    // ダッシュボードの開閉イベント登録
-    if (dashboardOpenBtn) {
-        dashboardOpenBtn.addEventListener('click', openDashboard);
-    }
-    if (dashboardCloseBtn) {
-        dashboardCloseBtn.addEventListener('click', closeDashboard);
+// 👤 ログイン処理
+authBtn.addEventListener('click', async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        const email = prompt("メールアドレスを入力してください:");
+        const password = prompt("パスワードを入力してください:");
+        if (email && password) {
+            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            if (error) {
+                const { error: signUpError } = await supabase.auth.signUp({ email, password });
+                if (signUpError) alert("エラー: " + signUpError.message);
+                else alert("アカウントを作成しました！確認メールをチェックするか、再度ログインしてください。");
+            } else {
+                location.reload();
+            }
+        }
     }
 });
 
-// ダッシュボードを開く関数
-function openDashboard() {
-    const overlay = document.getElementById('dashboardOverlay');
-    if (overlay) overlay.style.display = 'flex';
-}
+// 🚪 ログアウトボタン
+document.getElementById('menuLogout').addEventListener('click', async () => {
+    await supabase.auth.signOut();
+    location.reload();
+});
 
-// ダッシュボードを閉じる関数
-function closeDashboard() {
-    const overlay = document.getElementById('dashboardOverlay');
-    if (overlay) overlay.style.display = 'none';
-}
-
-// 認証状態に応じてUIを更新する関数
-function updateAuthUI() {
-    const authBtn = document.getElementById('authBtn');
-    const userInfo = document.getElementById('userInfo');
-    const dashboardOpenBtn = document.getElementById('dashboardOpenBtn');
-
-    if (!authBtn) return;
-
-    if (currentUser) {
-        authBtn.innerText = "ログアウト";
-        userInfo.innerText = currentUser.email.split('@')[0] + " さん";
-        if (dashboardOpenBtn) dashboardOpenBtn.style.display = "block"; // ログイン時のみボタン表示
-    } else {
-        authBtn.innerText = "ログイン / 新規登録";
-        userInfo.innerText = "";
-        if (dashboardOpenBtn) dashboardOpenBtn.style.display = "none";  // ログアウト時は非表示
-        closeDashboard(); // 万が一開いていたら強制的に閉じる
-    }
-}
-
-// ログイン・新規登録の処理を行う関数
-async function handleAuth() {
-    if (currentUser) {
-        const { error } = await _supabase.auth.signOut();
-        if (error) alert("ログアウトに失敗しました: " + error.message);
-        return;
-    }
-
-    const email = prompt("メールアドレスを入力してください:");
-    if (!email) return;
-    const password = prompt("パスワードを入力してください（6文字以上）:");
-    if (!password) return;
-
-    let { data, error } = await _supabase.auth.signInWithPassword({ email, password });
-    
-    if (error) {
-        console.log("アカウントが存在しないか未確認のため、新規登録を試みます:", error.message);
-        let { data: signUpData, error: signUpError } = await _supabase.auth.signUp({ email, password });
-        
-        if (signUpError) {
-            alert("ログインおよび新規登録に失敗しました:\n" + signUpError.message);
-        } else {
-            alert("新しくアカウントを作成し、ログインしました。");
-        }
-    } else {
-        alert("ログインに成功しました。");
-    }
-}
-
-// 動画一覧を取得して表示する関数
-async function fetchVideos(searchQuery = "") {
-    const videoGrid = document.getElementById('videoGrid');
+// ── 2. 動画データの読み込み ──
+async function loadVideos(searchQuery = '') {
     if (!videoGrid) return;
-    videoGrid.innerHTML = "<p style='color:#aaa;'>動画を読み込み中です...</p>";
+    videoGrid.innerHTML = '';
+
+    let query = supabase.from('videos').select('*').order('created_at', { ascending: false });
     
-    let query = _supabase.from('videos').select('*').order('created_at', { ascending: false });
-    if (searchQuery.trim() !== "") {
+    if (searchQuery) {
         query = query.ilike('title', `%${searchQuery}%`);
     }
 
     const { data: videos, error } = await query;
+
     if (error) {
-        videoGrid.innerHTML = "<p style='color:red;'>動画データの取得に失敗しました。</p>";
+        console.error("動画の取得に失敗:", error);
+        videoGrid.innerHTML = `<div class="no-videos-message">データの読み込みに失敗しました</div>`;
         return;
     }
 
-    videoGrid.innerHTML = "";
-    if (videos.length === 0) {
-        videoGrid.innerHTML = "<p style='color:#aaa;'>該当する動画がありません。</p>";
+    if (!videos || videos.length === 0) {
+        videoGrid.innerHTML = `<div class="no-videos-message">投稿された動画がまだありません。右上のメニューから投稿してみてね！</div>`;
         return;
     }
 
-    for (const video of videos) {
-        const { data: comments } = await _supabase
-            .from('comments')
-            .select('*')
-            .eq('video_id', video.id)
-            .order('created_at', { ascending: true });
-
+    videos.forEach(video => {
         const card = document.createElement('div');
         card.className = 'video-card';
-        
-        let thumbHtml = '';
-        if (video.thumbnail_url) {
-            thumbHtml = `<div class="thumbnail-img" style="background-image: url('${video.thumbnail_url}');"></div>`;
-        }
-
-        let commentsHtml = '';
-        if (comments && comments.length > 0) {
-            commentsHtml = comments.map(c => `<div class="comment-item">${escapeHtml(c.content)}</div>`).join('');
-        } else {
-            commentsHtml = `<div class="comment-item" style="color:#666;">コメントはまだありません。</div>`;
-        }
-
-        const isMyVideo = currentUser && video.user_id === currentUser.id;
-        const deleteBtnHtml = isMyVideo ? `<button class="delete-btn" style="display:block;" onclick="deleteVideo(${video.id})">🗑️</button>` : '';
+        const thumbUrl = video.thumbnail_url || 'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=400';
 
         card.innerHTML = `
             <div class="video-thumbnail-wrapper">
-                <video src="${video.video_url}" controls></video>
-                ${thumbHtml}
+                <div class="thumbnail-img" style="background-image: url('${thumbUrl}')"></div>
+                <video src="${video.video_url}" loop muted playsinline></video>
             </div>
             <div class="video-details">
                 <div class="channel-icon"></div>
                 <div class="video-meta">
-                    <p class="video-title">${escapeHtml(video.title)}</p>
-                    ${deleteBtnHtml}
-                    <p class="channel-name" style="font-size:12px; color:#aaa;">投稿者: ${video.user_id ? video.user_id.substring(0,6) : 'ゲスト'}</p>
-                    <div class="comment-section">
-                        <div class="comment-list">
-                            ${commentsHtml}
-                        </div>
-                        <div class="comment-input-box">
-                            <input type="text" id="input-${video.id}" placeholder="コメントを追加...">
-                            <button onclick="addComment(${video.id})">送信</button>
-                        </div>
-                    </div>
+                    <p class="video-title" title="${video.title}">${video.title}</p>
+                    <p class="channel-name">マイチャンネル</p>
+                    <p class="video-sub-info">0回視聴 ・ たった今</p>
                 </div>
             </div>
         `;
+
+        const videoEl = card.querySelector('video');
+        const thumbEl = card.querySelector('.thumbnail-img');
+        card.addEventListener('mouseenter', () => {
+            thumbEl.style.display = 'none';
+            videoEl.play().catch(() => {});
+        });
+        card.addEventListener('mouseleave', () => {
+            videoEl.pause();
+            videoEl.currentTime = 0;
+            thumbEl.style.display = 'block';
+        });
+
         videoGrid.appendChild(card);
-    }
+    });
 }
 
-// 動画およびサムネイルをアップロードする関数
-async function handleUpload() {
-    if (!currentUser) {
-        alert("動画を投稿するにはログインが必要です。");
-        return;
-    }
+// ── 3. 動画アップロード ──
+dashboardCloseBtn.addEventListener('click', () => {
+    dashboardOverlay.style.display = 'none';
+});
 
-    const videoTitleInput = document.getElementById('videoTitle');
-    const videoFileInput = document.getElementById('videoFile');
-    const thumbFileInput = document.getElementById('thumbFile');
-    const uploadBtn = document.getElementById('uploadBtn');
-
-    const title = videoTitleInput.value;
+uploadBtn.addEventListener('click', async () => {
+    const title = videoTitleInput.value.trim();
     const videoFile = videoFileInput.files[0];
     const thumbFile = thumbFileInput.files[0];
 
     if (!title || !videoFile) {
-        alert("タイトルと動画ファイルを選択してください。");
+        alert("タイトルと動画ファイルは必須でやんす！");
         return;
     }
 
-    uploadBtn.disabled = true;
     uploadBtn.innerText = "アップロード中...";
+    uploadBtn.disabled = true;
 
     try {
-        const cleanVideoName = `${Date.now()}_video.mp4`;
-        const { error: videoError } = await _supabase.storage.from('video-bucket').upload(cleanVideoName, videoFile);
-        if (videoError) throw videoError;
-        const { data: { publicUrl: videoUrl } } = _supabase.storage.from('video-bucket').getPublicUrl(cleanVideoName);
+        const videoName = `${Date.now()}_${videoFile.name}`;
+        const { data: vData, error: vError } = await supabase.storage.from('videos').upload(videoName, videoFile);
+        if (vError) throw vError;
+        const { data: vUrlData } = supabase.storage.from('videos').getPublicUrl(videoName);
 
-        let thumbnailUrl = null;
+        let thumbnailUrl = '';
         if (thumbFile) {
-            const cleanThumbName = `${Date.now()}_thumb.jpg`;
-            const { error: thumbError } = await _supabase.storage.from('video-bucket').upload(cleanThumbName, thumbFile);
-            if (thumbError) throw thumbError;
-            const { data: { publicUrl: pUrl } } = _supabase.storage.from('video-bucket').getPublicUrl(cleanThumbName);
-            thumbnailUrl = pUrl;
+            const thumbName = `${Date.now()}_${thumbFile.name}`;
+            const { error: tError } = await supabase.storage.from('thumbnails').upload(thumbName, thumbFile);
+            if (!tError) {
+                thumbnailUrl = supabase.storage.from('thumbnails').getPublicUrl(thumbName).data.publicUrl;
+            }
         }
 
-        const { error: dbError } = await _supabase
-            .from('videos')
-            .insert([{ title: title, video_url: videoUrl, thumbnail_url: thumbnailUrl, user_id: currentUser.id }]);
-
+        const { error: dbError } = await supabase.from('videos').insert([
+            { title: title, video_url: vUrlData.publicUrl, thumbnail_url: thumbnailUrl }
+        ]);
         if (dbError) throw dbError;
 
-        alert("動画の公開に成功しました！");
-        videoTitleInput.value = "";
-        videoFileInput.value = "";
-        thumbFileInput.value = "";
-        closeDashboard(); // 投稿成功時に自動でダッシュボードを閉じる
-        fetchVideos("");
+        alert("公開が完了したでやんす！");
+        dashboardOverlay.style.display = 'none';
+        videoTitleInput.value = '';
+        videoFileInput.value = '';
+        thumbFileInput.value = '';
+        loadVideos();
 
-    } catch (error) {
-        alert("投稿エラーが発生しました:\n" + error.message);
+    } catch (err) {
+        alert("失敗しました: " + err.message);
     } finally {
+        uploadBtn.innerText = "公開";
         uploadBtn.disabled = false;
-        uploadBtn.innerText = "動画を公開する";
     }
-}
+});
 
-// 動画を削除する関数
-window.deleteVideo = async function(videoId) {
-    if (!confirm("本当にこの動画を削除しますか？")) return;
+// 検索機能
+searchBtn.addEventListener('click', () => loadVideos(searchInput.value));
+searchInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') loadVideos(searchInput.value);
+});
 
-    const { error } = await _supabase
-        .from('videos')
-        .delete()
-        .eq('id', videoId);
-
-    if (error) {
-        alert("削除に失敗しました: " + error.message);
-    } else {
-        alert("動画を削除しました。");
-        fetchVideos("");
-    }
-};
-
-// コメントを追加する関数
-window.addComment = async function(videoId) {
-    const input = document.getElementById(`input-${videoId}`);
-    if (!input) return;
-    const content = input.value;
-    if (!content) return;
-
-    const { error } = await _supabase.from('comments').insert([{ video_id: videoId, content: content }]);
-    if (error) {
-        alert("コメントの送信に失敗しました: " + error.message);
-    } else {
-        input.value = "";
-        const searchInput = document.getElementById('searchInput');
-        fetchVideos(searchInput ? searchInput.value : "");
-    }
-};
-
-function escapeHtml(str) {
-    return str.replace(/[&<>"']/g, function(m) {
-        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-    });
-}
+checkUser();
+loadVideos();
