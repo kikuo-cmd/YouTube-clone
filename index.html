@@ -8,7 +8,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Roboto", "Arial", sans-serif; background-color: #ffffff; color: #0f0f0f; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* ── 1. ヘッダー（右側が切れないように修正） ── */
+        /* ── ヘッダーエリア ── */
         header { background-color: #ffffff; height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; border-bottom: 1px solid #f2f2f2; }
         .header-left { display: flex; align-items: center; gap: 16px; flex-shrink: 0; }
         .menu-icon { font-size: 20px; cursor: pointer; color: #0f0f0f; padding: 8px; }
@@ -20,88 +20,64 @@
         .search-box input { width: 100%; background-color: #ffffff; border: 1px solid #ccc; border-radius: 40px 0 0 40px; padding: 0 16px; color: #0f0f0f; height: 40px; font-size: 16px; outline: none; }
         .search-box button { background-color: #f8f8f8; border: 1px solid #ccc; border-left: none; border-radius: 0 40px 40px 0; padding: 0 24px; color: #0f0f0f; cursor: pointer; height: 40px; }
         
-        /* 🛠️ ボタンが切れないように余裕を持たせた右側エリア */
-        .header-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; position: relative; padding-right: 4px; }
+        /* アカウントメニューの飛び出しを防ぐ親要素設定 */
+        .header-right { display: flex; align-items: center; gap: 16px; flex-shrink: 0; position: relative; }
         
-        /* 通知ベルボタン */
-        .notification-btn { background: none; border: none; font-size: 20px; cursor: pointer; position: relative; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .notification-btn { background: none; border: none; font-size: 20px; cursor: pointer; padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .notification-btn:hover { background-color: #f2f2f2; }
-        .notification-badge { position: absolute; top: 2px; right: 2px; background-color: red; color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: bold; }
 
-        /* アカウント画像（右端で切れないようサイズ固定・マージン調整） */
         .account-avatar { width: 38px; height: 38px; background-color: #065fd4; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 14px; border: none; background-size: cover; background-position: center; flex-shrink: 0; }
-        .user-info-text { font-size: 12px; color: #606060; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+        .user-info-text { font-size: 12px; color: #606060; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 
-        /* アカウントメニューポップアップ */
-        .account-menu { position: absolute; top: 52px; right: 4px; background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 12px; width: 190px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); display: none; flex-direction: column; overflow: hidden; z-index: 101; }
+        /* 右端にぴったり合わせ、絶対に画面外に飛び出さないメニュー */
+        .account-menu { position: absolute; top: 50px; right: 0; background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 12px; width: 180px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); display: none; flex-direction: column; overflow: hidden; z-index: 101; }
         .account-menu-item { padding: 12px 16px; font-size: 14px; text-align: left; background: none; border: none; color: #0f0f0f; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 10px; width: 100%; }
         .account-menu-item:hover { background-color: #f2f2f2; }
         .account-menu-item.logout { border-top: 1px solid #eee; color: #cc0000; }
 
-        /* ── 2. 左側サイドバー（「なんか」を「トレンド」に決定！） ── */
+        /* ── メインレイアウト ── */
         .main-container { display: flex; margin-top: 56px; height: calc(100vh - 56px); width: 100%; }
         aside { width: 240px; background-color: #ffffff; padding: 12px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; border-right: 1px solid #f2f2f2; }
         .nav-item { display: flex; align-items: center; gap: 24px; padding: 0 12px; height: 40px; border-radius: 10px; text-decoration: none; color: #0f0f0f; font-size: 14px; cursor: pointer; font-weight: 500; }
         .nav-item:hover { background-color: #f2f2f2; }
         .nav-item.active { background-color: #f2f2f2; font-weight: bold; }
 
-        /* ── 3. メインコンテンツ ── */
         .content-wrapper { flex-grow: 1; padding: 24px; overflow-y: auto; background-color: #ffffff; display: flex; flex-direction: column; gap: 32px; }
         .section-container { display: flex; flex-direction: column; gap: 16px; position: relative; }
-        .section-title { font-size: 20px; font-weight: bold; color: #0f0f0f; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-size: 20px; font-weight: bold; color: #0f0f0f; }
 
-        /* 上段：通知セクション */
-        .notification-row { display: flex; gap: 16px; align-items: center; background-color: #f9f9f9; padding: 16px; border-radius: 12px; border: 1px solid #eee; overflow-x: auto; }
-        .creator-avatar { width: 48px; height: 48px; background-color: #e5e5e5; border-radius: 50%; flex-shrink: 0; background-image: url('https://api.dicebear.com/7.x/adventurer/svg?seed=creator1'); background-size: cover; border: 2px solid #065fd4; }
-        .creator-avatar2 { background-image: url('https://api.dicebear.com/7.x/adventurer/svg?seed=creator2'); }
-        .creator-avatar3 { background-image: url('https://api.dicebear.com/7.x/adventurer/svg?seed=creator3'); }
-        .notification-card { background: white; padding: 10px 16px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; gap: 12px; align-items: center; min-width: 320px; }
-        .noti-thumb { width: 64px; aspect-ratio: 16/9; background: #000; border-radius: 4px; background-image: url('https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=150'); background-size: cover; }
-        .noti-text p { font-size: 13px; font-weight: bold; color: #0f0f0f; }
-        .noti-text span { font-size: 11px; color: #606060; }
+        /* 通知セクション */
+        .notification-row { display: flex; gap: 16px; align-items: center; background-color: #f9f9f9; padding: 16px; border-radius: 12px; border: 1px solid #eee; overflow-x: auto; min-height: 60px; }
+        .empty-message { font-size: 14px; color: #606060; font-style: italic; }
 
-        /* 中段：おすすめ ＆ 下段：ショート */
+        /* 動画グリッド（横スクロール） */
         .horizontal-scroll-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
-        
-        /* 🛠️ 最初は動画がないので空っぽ、投稿されたらここに横並びで追加されます */
-        .video-grid-horizontal { display: flex; gap: 16px; overflow-x: auto; scroll-behavior: smooth; width: 100%; padding-bottom: 8px; min-height: 50px; }
+        .video-grid-horizontal { display: flex; gap: 16px; overflow-x: auto; scroll-behavior: smooth; width: 100%; padding-bottom: 8px; min-height: 40px; }
         .video-grid-horizontal::-webkit-scrollbar { display: none; }
         
-        /* 動画がまだないときの案内文字用のスタイル */
-        .no-videos-message { font-size: 14px; color: #606060; padding: 10px 4px; font-style: italic; }
-        
-        /* 通常の動画カード（投稿後に生成される枠） */
-        .video-card { min-width: 280px; width: 280px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
+        /* 通常動画カード */
+        .video-card { min-width: 280px; width: 280px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; position: relative; }
         .video-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #e5e5e5; border-radius: 12px; overflow: hidden; }
-        .video-thumbnail-wrapper video { width: 100%; height: 100%; object-fit: cover; }
+        .video-thumbnail-wrapper video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; }
-        .video-details { display: flex; gap: 10px; position: relative; }
+        
+        .video-details { display: flex; gap: 10px; padding-top: 4px; }
         .channel-icon { width: 32px; height: 32px; background-color: #efefef; border-radius: 50%; flex-shrink: 0; background-image: url('https://api.dicebear.com/7.x/identicon/svg?seed=User'); background-size: cover; }
         .video-meta { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
-        .video-title { font-size: 14px; font-weight: bold; line-height: 18px; color: #0f0f0f; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; padding-right: 20px; }
+        .video-title { font-size: 14px; font-weight: bold; line-height: 18px; color: #0f0f0f; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         .video-sub-info { font-size: 12px; color: #606060; margin-top: 2px; }
-        .delete-btn { position: absolute; top: 0; right: 0; background: none; border: none; color: #606060; cursor: pointer; font-size: 16px; display: none; }
-        .delete-btn:hover { color: #ff0000; }
 
         /* ショート動画カード */
         .shorts-card { min-width: 160px; width: 160px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
-        .shorts-thumbnail { width: 100%; aspect-ratio: 9/16; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; background-size: cover; background-position: center; }
+        .shorts-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 9/16; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; }
+        .shorts-thumbnail-wrapper video { width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; }
         .shorts-title { font-size: 13px; font-weight: bold; color: #0f0f0f; line-height: 16px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        .shorts-views { font-size: 11px; color: #606060; }
 
-        /* 次へスクロールボタン */
+        /* スクロールボタン */
         .scroll-next-btn { position: absolute; right: -15px; width: 40px; height: 40px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-weight: bold; }
         .scroll-next-btn:hover { background-color: #f2f2f2; transform: scale(1.05); }
 
-        /* コメントエリア */
-        .comment-section { background: #f8f8f8; padding: 10px; border-radius: 8px; margin-top: 6px; }
-        .comment-list { max-height: 80px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
-        .comment-item { border-bottom: 1px solid #e5e5e5; padding: 2px 0; }
-        .comment-input-box { display: flex; gap: 6px; margin-top: 6px; }
-        .comment-input-box input { flex-grow: 1; border: 1px solid #ccc; padding: 6px; font-size: 12px; border-radius: 4px; outline: none; }
-        .comment-input-box button { background: #065fd4; border: none; color: white; padding: 0 10px; font-size: 11px; border-radius: 4px; cursor: pointer; }
-
-        /* ── 動画アップロード用ポップアップモーダル（投稿・ライブ配信兼用） ── */
+        /* アップロード用モーダル */
         .dashboard-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center; }
         .dashboard-modal { background-color: #ffffff; width: 90%; max-width: 600px; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 12px; }
@@ -124,12 +100,12 @@
         </div>
         <div class="header-center">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="検索欄(動画検索できる)">
+                <input type="text" id="searchInput" placeholder="検索">
                 <button id="searchBtn">🔍</button>
             </div>
         </div>
         <div class="header-right">
-            <button class="notification-btn">🔔<span class="notification-badge">3</span></button>
+            <button class="notification-btn" id="notiBtn">🔔</button>
             
             <div id="userInfo" class="user-info-text"></div>
             <button id="authBtn" class="account-avatar">👤</button>
@@ -153,21 +129,10 @@
         </aside>
 
         <div class="content-wrapper">
-            
             <div class="section-container">
                 <div class="section-title">通知</div>
-                <div class="notification-row">
-                    <div class="creator-avatar" title="登録チャンネルのアイコン"></div>
-                    <div class="creator-avatar creator-avatar2"></div>
-                    <div class="creator-avatar creator-avatar3"></div>
-                    
-                    <div class="notification-card">
-                        <div class="noti-thumb"></div>
-                        <div class="noti-text">
-                            <p>タイヤキ_taiyaki_ がアップロードしました</p>
-                            <span>【驚愕】開始1秒で3人同時に... ・ 5分前</span>
-                        </div>
-                    </div>
+                <div class="notification-row" id="notificationRow">
+                    <div class="empty-message">新しい通知はありません。</div>
                 </div>
             </div>
 
@@ -175,7 +140,7 @@
                 <div class="section-title">おすすめ</div>
                 <div class="horizontal-scroll-wrapper">
                     <div class="video-grid-horizontal" id="videoGrid">
-                        <div class="no-videos-message">読み込み中、または投稿された動画がありません。</div>
+                        <div class="empty-message">該当する動画がありません。</div>
                     </div>
                     <button class="scroll-next-btn" id="scrollNextVideos">＞</button>
                 </div>
@@ -185,26 +150,11 @@
                 <div class="section-title">ショート</div>
                 <div class="horizontal-scroll-wrapper">
                     <div class="video-grid-horizontal" id="shortsGrid">
-                        <div class="shorts-card" onclick="alert('ショート動画を再生します！')">
-                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400');"></div>
-                            <p class="shorts-title">【ツムツム】死者の国の死神ハデスがやばすぎるww</p>
-                            <p class="shorts-views">日付・時刻 再生数</p>
-                        </div>
-                        <div class="shorts-card" onclick="alert('ショート動画を再生します！')">
-                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400');"></div>
-                            <p class="shorts-title">2025年に流行ったボカロ曲まとめ</p>
-                            <p class="shorts-views">日付・時刻 再生数</p>
-                        </div>
-                        <div class="shorts-card" onclick="alert('ショート動画を再生します！')">
-                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400');"></div>
-                            <p class="shorts-title">ハンバーガー積みって知ってる？...</p>
-                            <p class="shorts-views">日付・時刻 再生数</p>
-                        </div>
+                        <div class="empty-message">該当する動画がありません。</div>
                     </div>
                     <button class="scroll-next-btn" id="scrollNextShorts">＞</button>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -221,11 +171,11 @@
                 </div>
                 <div class="file-input-wrapper">
                     <div class="file-box">
-                        <label id="fileLabelVideo">🎥 動画ファイル</label>
+                        <label>🎥 動画ファイル</label>
                         <input type="file" id="videoFile" accept="video/*">
                     </div>
                     <div class="file-box">
-                        <label id="fileLabelThumb">🖼️ サムネイル（任意）</label>
+                        <label>🖼️ サムネイル（任意）</label>
                         <input type="file" id="thumbFile" accept="image/*">
                     </div>
                 </div>
@@ -246,7 +196,7 @@
         const dashboardOverlay = document.getElementById('dashboardOverlay');
         const modalTitle = document.getElementById('modalTitle');
 
-        // アカウント画像クリックでドロップダウン表示
+        // メニューの表示切り替え
         authBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             accountMenu.style.display = accountMenu.style.display === 'flex' ? 'none' : 'flex';
@@ -254,40 +204,37 @@
 
         document.addEventListener('click', () => { accountMenu.style.display = 'none'; });
 
-        // ロゴ・ホームボタンを押したら画面リロードして初期化
+        // ナビゲーション・ホームリロード
         document.getElementById('logoHome').addEventListener('click', () => location.reload());
         document.getElementById('sideHome').addEventListener('click', () => location.reload());
 
-        // 🎥 「新規投稿」をクリックした時の連動
+        // 新規投稿クリック時
         document.getElementById('menuNewPost').addEventListener('click', () => {
             modalTitle.innerHTML = '🎥 動画のアップロード（新規投稿）';
             dashboardOverlay.style.display = 'flex';
         });
 
-        // 🔴 「ライブ配信」をクリックした時の連動（モーダルをライブ風に切り替え）
+        // ライブ配信クリック時
         document.getElementById('menuLive').addEventListener('click', () => {
-            modalTitle.innerHTML = '🔴 ライブ配信の設定（準備）';
-            alert("ライブ配信機能のシミュレーションを開始するでやんす！配信用タイトルを入力して公開ボタンを押してね。");
+            modalTitle.innerHTML = '🔴 ライブ配信の設定';
             dashboardOverlay.style.display = 'flex';
         });
 
-        // ⚙️ アカウント設定・サイドバー設定
-        const openSetting = () => alert('アカウント設定画面を開きました！');
-        document.getElementById('menuSetting').addEventListener('click', openSetting);
-        document.getElementById('sideSetting').addEventListener('click', openSetting);
-
-        // 各種サイドバーボタンのクリックイベント
-        document.getElementById('sideShorts').addEventListener('click', () => alert('🩳 ショート動画セクションへジャンプ！'));
-        document.getElementById('sideSubs').addEventListener('click', () => alert('🔔 登録しているクリエイターの一覧です！'));
-        document.getElementById('sideTrending').addEventListener('click', () => alert('🔥 今話題のトレンド動画一覧です！'));
-
-        // 「＞」ボタンによる横スクロール制御
+        // スクロール制御
         document.getElementById('scrollNextVideos').addEventListener('click', () => {
             document.getElementById('videoGrid').scrollBy({ left: 300, behavior: 'smooth' });
         });
         document.getElementById('scrollNextShorts').addEventListener('click', () => {
             document.getElementById('shortsGrid').scrollBy({ left: 200, behavior: 'smooth' });
         });
+
+        // 通知・その他ボタンのダミーイベント
+        document.getElementById('notiBtn').addEventListener('click', () => alert('新しい通知はありません。'));
+        document.getElementById('menuSetting').addEventListener('click', () => alert('アカウント設定画面を開きます。'));
+        document.getElementById('sideShorts').addEventListener('click', () => alert('ショート動画セクションです。'));
+        document.getElementById('sideSubs').addEventListener('click', () => alert('登録チャンネルの一覧です。'));
+        document.getElementById('sideTrending').addEventListener('click', () => alert('トレンド動画の一覧です。'));
+        document.getElementById('sideSetting').addEventListener('click', () => alert('設定画面を開きます。'));
     </script>
 </body>
 </html>
