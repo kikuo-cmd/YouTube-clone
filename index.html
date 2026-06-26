@@ -1,1 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube クローン</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f9f9f9; }
+        header { background-color: #fff; padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
+        .logo { font-size: 20px; font-weight: bold; color: #ff0000; text-decoration: none; }
+        .upload-box { background: #fff; padding: 20px; margin: 20px; border-radius: 8px; border: 1px solid #ddd; }
+        .upload-box input, .upload-box button { margin: 5px 0; display: block; width: 100%; max-width: 400px; padding: 8px; }
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
+        .video-card { background: #fff; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .video-card video { width: 100%; aspect-ratio: 16/9; background: #000; }
+        .video-info { padding: 10px; }
+        .video-title { font-weight: bold; margin: 0 0 5px 0; }
+    </style>
+</head>
+<body>
 
+    <!-- ヘッダー（上のバー） -->
+    <header>
+        <a href="#" class="logo">YouTube Clone</a>
+    </header>
+
+    <!-- 動画投稿フォーム -->
+    <div class="upload-box">
+        <h3>動画を投稿する</h3>
+        <input type="text" id="videoTitle" placeholder="動画のタイトルを入力">
+        <input type="file" id="videoFile" accept="video/*">
+        <button id="uploadBtn">投稿する</button>
+    </div>
+
+    <!-- 動画一覧が並ぶ場所 -->
+    <div class="video-grid" id="videoGrid">
+        <!-- ここに投稿された動画が自動で追加されます -->
+    </div>
+
+    <!-- Supabaseを使うための魔法のスクリプト（CDN） -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 自分で書くJavaScriptファイルを読み込む -->
+    <script src="app.js"></script>
+</body>
+</html>
