@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube</title>
+    <title>YouTube Clone Premium</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Roboto", "Arial", sans-serif; background-color: #0f0f0f; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
         /* ヘッダー */
-        header { background-color: #0f0f0f; height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; }
+        header { background-color: #0f0f0f; height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; border-bottom: 1px solid #222; }
         .header-left { display: flex; align-items: center; gap: 16px; }
         .logo { font-size: 20px; font-weight: bold; color: #fff; text-decoration: none; display: flex; align-items: center; gap: 4px; }
         .logo span { color: #ff0000; font-size: 24px; }
@@ -19,42 +19,50 @@
         .search-box input:focus { border-color: #1c62b9; }
         .search-box button { background-color: #222; border: 1px solid #303030; border-left: none; border-radius: 0 40px 40px 0; padding: 0 20px; color: #fff; cursor: pointer; height: 40px; }
         
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .auth-btn { background-color: #1c62b9; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .user-info { font-size: 14px; color: #aaa; display: flex; align-items: center; gap: 8px; }
+
         /* メインレイアウト */
         .main-container { display: flex; margin-top: 56px; height: calc(100vh - 56px); width: 100%; }
         
         /* サイドバー */
         aside { width: 240px; background-color: #0f0f0f; padding: 12px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
-        .nav-item { display: flex; align-items: center; gap: 24px; padding: 0 12px; height: 40px; border-radius: 10px; text-decoration: none; color: #fff; font-size: 14px; }
+        .nav-item { display: flex; align-items: center; gap: 24px; padding: 0 12px; height: 40px; border-radius: 10px; text-decoration: none; color: #fff; font-size: 14px; cursor: pointer; }
         .nav-item:hover, .nav-item.active { background-color: #272727; }
         
         /* コンテンツエリア */
         .content-wrapper { flex-grow: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
         
-        /* 投稿フォーム（本物のYouTubeの動画管理っぽく上部に配置） */
-        .upload-box { background: #212121; padding: 20px; border-radius: 12px; border: 1px solid #303030; max-width: 800px; margin: 0 auto; width: 100%; }
+        /* 投稿フォーム */
+        .upload-box { background: #212121; padding: 20px; border-radius: 12px; border: 1px solid #303030; max-width: 800px; margin: 0 auto; width: 100%; display: none; }
         .upload-box h3 { margin-bottom: 12px; font-size: 18px; }
         .upload-form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
         .upload-box input[type="text"] { background: #121212; border: 1px solid #303030; padding: 10px; color: #fff; border-radius: 6px; font-size: 14px; outline: none; width: 100%; }
         .upload-box label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; }
-        .upload-box input[type="file"] { color: #fff; font-size: 12px; }
         .upload-box button { background-color: #cc0000; color: white; border: none; padding: 10px 24px; border-radius: 20px; font-weight: bold; cursor: pointer; float: right; }
-        .upload-box button:disabled { background-color: #555; cursor: not-allowed; }
         
-        /* 動画グリッド（本家と同じ構図） */
+        /* ログイン催促メッセージ */
+        .login-alert-box { text-align: center; padding: 30px; background: #212121; border-radius: 12px; border: 1px solid #303030; max-width: 800px; margin: 0 auto; width: 100%; }
+
+        /* 動画グリッド */
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
-        .video-card { background: transparent; cursor: pointer; display: flex; flex-direction: column; gap: 12px; }
+        .video-card { background: transparent; display: flex; flex-direction: column; gap: 12px; position: relative; }
         .video-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; border-radius: 12px; overflow: hidden; }
         .video-thumbnail-wrapper video { width: 100%; height: 100%; object-fit: cover; }
-        .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; }
+        .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; cursor: pointer; }
         
         /* 動画詳細情報 */
-        .video-details { display: flex; gap: 12px; padding: 0 4px; }
+        .video-details { display: flex; gap: 12px; padding: 0 4px; position: relative; }
         .channel-icon { width: 36px; height: 36px; background-color: #555; border-radius: 50%; flex-shrink: 0; background-image: url('https://api.dicebear.com/7.x/bottts/svg?seed=user'); background-size: cover; }
         .video-meta { flex-grow: 1; }
-        .video-title { font-size: 14px; font-weight: bold; line-height: 20px; color: #f1f1f1; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        .channel-name { font-size: 12px; color: #aaa; }
+        .video-title { font-size: 14px; font-weight: bold; line-height: 20px; color: #f1f1f1; margin-bottom: 4px; padding-right: 24px; }
         
-        /* コメント欄エリア（本家の動画下風） */
+        /* 削除ボタン */
+        .delete-btn { position: absolute; top: 0; right: 0; background: none; border: none; color: #aaa; cursor: pointer; font-size: 16px; padding: 4px; display: none; }
+        .delete-btn:hover { color: #ff0000; }
+
+        /* コメント欄エリア */
         .comment-section { background: #1a1a1a; padding: 12px; border-radius: 8px; margin-top: 8px; }
         .comment-list { max-height: 100px; overflow-y: auto; font-size: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
         .comment-item { padding: 4px; border-bottom: 1px solid #2a2a2a; color: #ccc; }
@@ -75,24 +83,30 @@
                 <button id="searchBtn">🔍</button>
             </div>
         </div>
-        <div style="width: 40px;"></div>
+        <div class="header-right">
+            <div id="userInfo" class="user-info"></div>
+            <button id="authBtn" class="auth-btn">ログイン</button>
+        </div>
     </header>
 
     <div class="main-container">
         <aside>
-            <a href="#" class="nav-item active">🏠 ホーム</a>
-            <a href="#" class="nav-item">🩳 ショート</a>
-            <a href="#" class="nav-item">🔔 登録チャンネル</a>
-            <a href="#" class="nav-item">📁 ライブラリ</a>
+            <div class="nav-item active" onclick="alert('ホーム画面でやんす！')">🏠 ホーム</div>
+            <div class="nav-item" onclick="alert('ショート動画は準備中でやんす！')">🩳 ショート</div>
+            <div class="nav-item" onclick="alert('登録チャンネルは準備中でやんす！')">🔔 登録チャンネル</div>
+            <div class="nav-item" onclick="alert('ライブラリは準備中でやんす！')">📁 ライブラリ</div>
         </aside>
 
         <div class="content-wrapper">
-            <div class="upload-box">
+            <div id="loginAlert" class="login-alert-box">
+                <p style="color: #aaa; margin-bottom: 10px;">動画をアップロードするにはログインが必要でやんす！</p>
+                <button onclick="handleAuth()" class="auth-btn" style="float: none; display: inline-block;">ログインする</button>
+            </div>
+
+            <div id="uploadBox" class="upload-box">
                 <h3>動画をアップロード</h3>
                 <div class="upload-form-group">
-                    <div>
-                        <input type="text" id="videoTitle" placeholder="タイトルを追加">
-                    </div>
+                    <div><input type="text" id="videoTitle" placeholder="タイトルを追加"></div>
                     <div>
                         <label>動画ファイル</label>
                         <input type="file" id="videoFile" accept="video/*">
