@@ -18,7 +18,7 @@ const thumbFileInput = document.getElementById('thumbFile');
 const searchInput = document.getElementById('searchInput');
 const searchBtn = document.getElementById('searchBtn');
 
-// ログイン状態チェック
+// ユーザー状態チェック
 async function checkUser() {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
@@ -30,7 +30,7 @@ async function checkUser() {
     }
 }
 
-// 認証処理
+// ログイン・登録
 authBtn.addEventListener('click', async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -41,7 +41,7 @@ authBtn.addEventListener('click', async () => {
             if (error) {
                 const { error: signUpError } = await supabase.auth.signUp({ email, password });
                 if (signUpError) alert("エラー: " + signUpError.message);
-                else alert("アカウントを作成しました。確認メールをチェックするか、再度ログインしてください。");
+                else alert("アカウントを作成しました。一度画面をリロードしてログインし直してください。");
             } else {
                 location.reload();
             }
@@ -55,7 +55,7 @@ document.getElementById('menuLogout').addEventListener('click', async () => {
     location.reload();
 });
 
-// 動画データの取得と配置（再生対応）
+// 動画データのロードとマウスホバー再生の実装
 async function loadVideos(searchQuery = '') {
     if (!videoGrid || !shortsGrid) return;
 
@@ -79,7 +79,6 @@ async function loadVideos(searchQuery = '') {
     let hasShortsVideo = false;
 
     videos.forEach(video => {
-        // タイトルやアスペクト比、または一律のルールでショート動画（縦動画）を自動判定
         const isShorts = video.title.includes('ショート') || video.title.includes('#shorts');
 
         if (isShorts) {
@@ -122,7 +121,7 @@ async function loadVideos(searchQuery = '') {
     if (!hasShortsVideo) shortsGrid.innerHTML = `<div class="empty-message">該当する動画がありません。</div>`;
 }
 
-// マウスホバーで再生される制御ロジック
+// マウスイベントで再生/停止を切り替えるロジック
 function setupHoverPlayback(card) {
     const videoEl = card.querySelector('video');
     const thumbEl = card.querySelector('.thumbnail-img');
@@ -131,7 +130,7 @@ function setupHoverPlayback(card) {
 
     card.addEventListener('mouseenter', () => {
         if (thumbEl) thumbEl.style.display = 'none';
-        videoEl.play().catch(err => console.log("再生ブロック:", err));
+        videoEl.play().catch(err => console.log("再生ブロック回避:", err));
     });
 
     card.addEventListener('mouseleave', () => {
@@ -141,7 +140,7 @@ function setupHoverPlayback(card) {
     });
 }
 
-// 動画アップロード処理
+// アップロード処理
 dashboardCloseBtn.addEventListener('click', () => {
     dashboardOverlay.style.display = 'none';
 });
@@ -187,7 +186,7 @@ uploadBtn.addEventListener('click', async () => {
         loadVideos();
 
     } catch (err) {
-        alert("失敗しました: " + err.message);
+        alert("投稿エラーが発生しました: " + err.message);
     } finally {
         uploadBtn.innerText = "公開";
         uploadBtn.disabled = false;
