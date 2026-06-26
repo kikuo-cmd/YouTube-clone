@@ -204,10 +204,10 @@ async function handleUpload() {
             thumbnailUrl = pUrl;
         }
 
-        // データベースに投稿情報を保存
+        // 【修正ポイント】thumbnailUrl を データベースの列名 thumbnail_url に合わせて保存します
         const { error: dbError } = await _supabase
             .from('videos')
-            .insert([{ title: title, video_url: videoUrl, thumbnailUrl: thumbnailUrl, user_id: currentUser.id }]);
+            .insert([{ title: title, video_url: videoUrl, thumbnail_url: thumbnailUrl, user_id: currentUser.id }]);
 
         if (dbError) throw dbError;
 
@@ -218,7 +218,7 @@ async function handleUpload() {
         fetchVideos("");
 
     } catch (error) {
-        alert("投稿エラーが発生しました: " + error.message);
+        alert("投稿エラーが発生しました:\n" + error.message);
     } finally {
         uploadBtn.disabled = false;
         uploadBtn.innerText = "公開";
