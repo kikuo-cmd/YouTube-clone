@@ -21,6 +21,8 @@ window.addEventListener('load', async () => {
     const searchBtn = document.getElementById('searchBtn');
     const searchInput = document.getElementById('searchInput');
     const authBtn = document.getElementById('authBtn');
+    const dashboardOpenBtn = document.getElementById('dashboardOpenBtn');
+    const dashboardCloseBtn = document.getElementById('dashboardCloseBtn');
 
     if (searchBtn && searchInput) {
         searchBtn.addEventListener('click', () => fetchVideos(searchInput.value));
@@ -31,27 +33,45 @@ window.addEventListener('load', async () => {
     if (authBtn) {
         authBtn.addEventListener('click', handleAuth);
     }
+
+    // ダッシュボードの開閉イベント登録
+    if (dashboardOpenBtn) {
+        dashboardOpenBtn.addEventListener('click', openDashboard);
+    }
+    if (dashboardCloseBtn) {
+        dashboardCloseBtn.addEventListener('click', closeDashboard);
+    }
 });
+
+// ダッシュボードを開く関数
+function openDashboard() {
+    const overlay = document.getElementById('dashboardOverlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+// ダッシュボードを閉じる関数
+function closeDashboard() {
+    const overlay = document.getElementById('dashboardOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
 
 // 認証状態に応じてUIを更新する関数
 function updateAuthUI() {
     const authBtn = document.getElementById('authBtn');
     const userInfo = document.getElementById('userInfo');
-    const uploadBox = document.getElementById('uploadBox');
-    const loginAlert = document.getElementById('loginAlert');
+    const dashboardOpenBtn = document.getElementById('dashboardOpenBtn');
 
     if (!authBtn) return;
 
     if (currentUser) {
         authBtn.innerText = "ログアウト";
         userInfo.innerText = currentUser.email.split('@')[0] + " さん";
-        if (uploadBox) uploadBox.style.display = "block";
-        if (loginAlert) loginAlert.style.display = "none";
+        if (dashboardOpenBtn) dashboardOpenBtn.style.display = "block"; // ログイン時のみボタン表示
     } else {
         authBtn.innerText = "ログイン / 新規登録";
         userInfo.innerText = "";
-        if (uploadBox) uploadBox.style.display = "none";
-        if (loginAlert) loginAlert.style.display = "block";
+        if (dashboardOpenBtn) dashboardOpenBtn.style.display = "none";  // ログアウト時は非表示
+        closeDashboard(); // 万が一開いていたら強制的に閉じる
     }
 }
 
@@ -68,10 +88,8 @@ async function handleAuth() {
     const password = prompt("パスワードを入力してください（6文字以上）:");
     if (!password) return;
 
-    // 既存アカウントでのログインを試行
     let { data, error } = await _supabase.auth.signInWithPassword({ email, password });
     
-    // ログイン失敗時は新規アカウント作成を試行
     if (error) {
         console.log("アカウントが存在しないか未確認のため、新規登録を試みます:", error.message);
         let { data: signUpData, error: signUpError } = await _supabase.auth.signUp({ email, password });
@@ -110,7 +128,6 @@ async function fetchVideos(searchQuery = "") {
     }
 
     for (const video of videos) {
-        // 動画に関連するコメントを取得
         const { data: comments } = await _supabase
             .from('comments')
             .select('*')
@@ -132,7 +149,6 @@ async function fetchVideos(searchQuery = "") {
             commentsHtml = `<div class="comment-item" style="color:#666;">コメントはまだありません。</div>`;
         }
 
-        // 投稿者本人の場合のみ削除ボタンを表示
         const isMyVideo = currentUser && video.user_id === currentUser.id;
         const deleteBtnHtml = isMyVideo ? `<button class="delete-btn" style="display:block;" onclick="deleteVideo(${video.id})">🗑️</button>` : '';
 
@@ -188,13 +204,11 @@ async function handleUpload() {
     uploadBtn.innerText = "アップロード中...";
 
     try {
-        // 動画ファイルのアップロード
         const cleanVideoName = `${Date.now()}_video.mp4`;
         const { error: videoError } = await _supabase.storage.from('video-bucket').upload(cleanVideoName, videoFile);
         if (videoError) throw videoError;
         const { data: { publicUrl: videoUrl } } = _supabase.storage.from('video-bucket').getPublicUrl(cleanVideoName);
 
-        // サムネイルファイルのアップロード（任意）
         let thumbnailUrl = null;
         if (thumbFile) {
             const cleanThumbName = `${Date.now()}_thumb.jpg`;
@@ -204,24 +218,24 @@ async function handleUpload() {
             thumbnailUrl = pUrl;
         }
 
-        // 【修正ポイント】thumbnailUrl を データベースの列名 thumbnail_url に合わせて保存します
         const { error: dbError } = await _supabase
             .from('videos')
             .insert([{ title: title, video_url: videoUrl, thumbnail_url: thumbnailUrl, user_id: currentUser.id }]);
 
         if (dbError) throw dbError;
 
-        alert("動画の公開に成功しました。");
+        alert("動画の公開に成功しました！");
         videoTitleInput.value = "";
         videoFileInput.value = "";
         thumbFileInput.value = "";
+        closeDashboard(); // 投稿成功時に自動でダッシュボードを閉じる
         fetchVideos("");
 
     } catch (error) {
         alert("投稿エラーが発生しました:\n" + error.message);
     } finally {
         uploadBtn.disabled = false;
-        uploadBtn.innerText = "公開";
+        uploadBtn.innerText = "動画を公開する";
     }
 }
 
@@ -259,7 +273,6 @@ window.addComment = async function(videoId) {
     }
 };
 
-// HTMLエスケープ処理（セキュリティ対策）
 function escapeHtml(str) {
     return str.replace(/[&<>"']/g, function(m) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
