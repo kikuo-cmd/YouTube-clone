@@ -3,96 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube</title>
+    <title>YouTube クローン</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Roboto", "Arial", sans-serif; background-color: #ffffff; color: #0f0f0f; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         
-        /* ── ヘッダー（本物風の白デザイン） ── */
-        header { background-color: #ffffff; height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; }
+        /* ── 1. ヘッダー（設計図通りに配置） ── */
+        header { background-color: #ffffff; height: 56px; padding: 0 16px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; width: 100%; z-index: 100; border-bottom: 1px solid #f2f2f2; }
         .header-left { display: flex; align-items: center; gap: 16px; }
         .menu-icon { font-size: 20px; cursor: pointer; color: #0f0f0f; padding: 8px; }
-        .logo { font-size: 20px; font-weight: bold; color: #0f0f0f; text-decoration: none; display: flex; align-items: center; gap: 4px; letter-spacing: -1px; }
+        .logo { font-size: 20px; font-weight: bold; color: #0f0f0f; text-decoration: none; display: flex; align-items: center; gap: 4px; letter-spacing: -1px; cursor: pointer; }
         .logo span { color: #ff0000; font-size: 24px; }
         
         .header-center { flex-grow: 1; max-width: 640px; display: flex; align-items: center; margin: 0 40px; }
         .search-box { width: 100%; display: flex; align-items: center; }
-        .search-box input { width: 100%; background-color: #ffffff; border: 1px solid #ccc; border-radius: 40px 0 0 40px; padding: 0 16px; color: #0f0f0f; height: 40px; font-size: 16px; outline: none; box-shadow: inset 0 1px 2px rgba(0,0,0,0.1); }
-        .search-box input:focus { border-color: #1c62b9; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); }
+        .search-box input { width: 100%; background-color: #ffffff; border: 1px solid #ccc; border-radius: 40px 0 0 40px; padding: 0 16px; color: #0f0f0f; height: 40px; font-size: 16px; outline: none; }
         .search-box button { background-color: #f8f8f8; border: 1px solid #ccc; border-left: none; border-radius: 0 40px 40px 0; padding: 0 24px; color: #0f0f0f; cursor: pointer; height: 40px; }
-        .search-box button:hover { background-color: #f0f0f0; }
         
-        .header-right { display: flex; align-items: center; gap: 16px; }
-        .auth-btn { background-color: #ffffff; color: #065fd4; border: 1px solid #ccc; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-        .auth-btn:hover { background-color: #def1ff; border-color: transparent; }
-        .dashboard-trigger-btn { background-color: #cc0000; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; display: none; }
-        .dashboard-trigger-btn:hover { background-color: #990000; }
-        .user-info { font-size: 14px; color: #606060; font-weight: 500; }
+        .header-right { display: flex; align-items: center; gap: 20px; position: relative; }
+        
+        /* 通知ベルボタン */
+        .notification-btn { background: none; border: none; font-size: 20px; cursor: pointer; position: relative; padding: 6px; border-radius: 50%; }
+        .notification-btn:hover { background-color: #f2f2f2; }
+        .notification-badge { position: absolute; top: 2px; right: 2px; background-color: red; color: white; font-size: 10px; padding: 2px 5px; border-radius: 50%; font-weight: bold; }
 
-        /* ── メインレイアウト ── */
+        /* アカウント画像（ログインボタンを兼ねる） */
+        .account-avatar { width: 36px; height: 36px; background-color: #065fd4; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 14px; border: none; background-size: cover; background-position: center; }
+        .user-info-text { font-size: 12px; color: #606060; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* 👑 設計図：アカウント画像を押したら出るメニュー ── */
+        .account-menu { position: absolute; top: 50px; right: 0; background-color: #ffffff; border: 1px solid #e5e5e5; border-radius: 12px; width: 180px; box-shadow: 0 4px 16px rgba(0,0,0,0.1); display: none; flex-direction: column; overflow: hidden; z-index: 101; }
+        .account-menu-item { padding: 12px 16px; font-size: 14px; text-align: left; background: none; border: none; color: #0f0f0f; cursor: pointer; font-weight: 500; display: flex; align-items: center; gap: 10px; }
+        .account-menu-item:hover { background-color: #f2f2f2; }
+        .account-menu-item.logout { border-top: 1px solid #eee; color: #cc0000; }
+
+        /* ── 2. 左側サイドバー（設計図通りに名称変更） ── */
         .main-container { display: flex; margin-top: 56px; height: calc(100vh - 56px); width: 100%; }
-        
-        /* サイドバー（本物風スリム＆白） */
-        aside { width: 240px; background-color: #ffffff; padding: 12px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+        aside { width: 240px; background-color: #ffffff; padding: 12px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; border-right: 1px solid #f2f2f2; }
         .nav-item { display: flex; align-items: center; gap: 24px; padding: 0 12px; height: 40px; border-radius: 10px; text-decoration: none; color: #0f0f0f; font-size: 14px; cursor: pointer; font-weight: 500; }
         .nav-item:hover { background-color: #f2f2f2; }
         .nav-item.active { background-color: #f2f2f2; font-weight: bold; }
-        
-        /* コンテンツエリア */
+
+        /* ── 3. メインコンテンツ（3段のセクション構成） ── */
         .content-wrapper { flex-grow: 1; padding: 24px; overflow-y: auto; background-color: #ffffff; display: flex; flex-direction: column; gap: 32px; }
+        .section-container { display: flex; flex-direction: column; gap: 16px; position: relative; }
+        .section-title { font-size: 20px; font-weight: bold; color: #0f0f0f; display: flex; align-items: center; gap: 8px; }
+
+        /* 🔔 設計図：上段「通知」セクション */
+        .notification-row { display: flex; gap: 16px; align-items: center; background-color: #f9f9f9; padding: 16px; border-radius: 12px; border: 1px solid #eee; overflow-x: auto; }
+        .creator-avatar { width: 48px; height: 48px; background-color: #e5e5e5; border-radius: 50%; flex-shrink: 0; background-image: url('https://api.dicebear.com/7.x/adventurer/svg?seed=creator1'); background-size: cover; border: 2px solid #065fd4; }
+        .creator-avatar2 { background-image: url('https://api.dicebear.com/7.x/adventurer/svg?seed=creator2'); }
+        .creator-avatar3 { background-image: url('https://api.dicebear.com/7.x/adventurer/svg?seed=creator3'); }
+        .notification-card { background: white; padding: 10px 16px; border-radius: 8px; border: 1px solid #e0e0e0; display: flex; gap: 12px; align-items: center; min-width: 320px; }
+        .noti-thumb { width: 64px; aspect-ratio: 16/9; background: #000; border-radius: 4px; background-image: url('https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?w=150'); background-size: cover; }
+        .noti-text p { font-size: 13px; font-weight: bold; color: #0f0f0f; }
+        .noti-text span { font-size: 11px; color: #606060; }
+
+        /* ⭐️ 設計図：中段「おすすめ」＆ 下段「ショート」（横スクロール構造） */
+        .horizontal-scroll-wrapper { position: relative; width: 100%; display: flex; align-items: center; }
+        .video-grid-horizontal { display: flex; gap: 16px; overflow-x: auto; scroll-behavior: smooth; width: 100%; padding-bottom: 8px; }
+        .video-grid-horizontal::-webkit-scrollbar { display: none; } /* スクロールバーを隠してスッキリ */
         
-        /* ── 本物風の動画グリッド ── */
-        .section-title { font-size: 20px; font-weight: bold; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 40px 16px; }
-        .video-card { display: flex; flex-direction: column; gap: 12px; position: relative; cursor: pointer; }
-        
+        /* 通常の動画カード（おすすめ） */
+        .video-card { min-width: 280px; width: 280px; display: flex; flex-direction: column; gap: 10px; cursor: pointer; }
         .video-thumbnail-wrapper { position: relative; width: 100%; aspect-ratio: 16/9; background: #e5e5e5; border-radius: 12px; overflow: hidden; }
         .video-thumbnail-wrapper video { width: 100%; height: 100%; object-fit: cover; }
         .thumbnail-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; z-index: 2; }
-        
-        .video-details { display: flex; gap: 12px; padding: 0 4px; position: relative; }
-        .channel-icon { width: 36px; height: 36px; background-color: #efefef; border-radius: 50%; flex-shrink: 0; background-image: url('https://api.dicebear.com/7.x/identicon/svg?seed=Channel'); background-size: cover; }
-        .video-meta { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; }
-        .video-title { font-size: 16px; font-weight: bold; line-height: 22px; color: #0f0f0f; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; padding-right: 24px; }
-        .channel-name { font-size: 14px; color: #606060; }
-        
-        /* ゴミ箱ボタン */
-        .delete-btn { position: absolute; top: 0; right: 0; background: none; border: none; color: #606060; cursor: pointer; font-size: 18px; padding: 4px; display: none; }
+        .video-details { display: flex; gap: 10px; position: relative; }
+        .channel-icon { width: 32px; height: 32px; background-color: #efefef; border-radius: 50%; flex-shrink: 0; background-image: url('https://api.dicebear.com/7.x/identicon/svg?seed=User'); background-size: cover; }
+        .video-meta { flex-grow: 1; display: flex; flex-direction: column; gap: 2px; }
+        .video-title { font-size: 14px; font-weight: bold; line-height: 18px; color: #0f0f0f; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; padding-right: 20px; }
+        .video-sub-info { font-size: 12px; color: #606060; margin-top: 2px; }
+        .delete-btn { position: absolute; top: 0; right: 0; background: none; border: none; color: #606060; cursor: pointer; font-size: 16px; display: none; }
         .delete-btn:hover { color: #ff0000; }
 
-        /* コメント欄（SNS風にスッキリ） */
-        .comment-section { background: #f8f8f8; padding: 12px; border-radius: 8px; margin-top: 8px; }
-        .comment-list { max-height: 120px; overflow-y: auto; font-size: 13px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .comment-item { padding: 4px 0; border-bottom: 1px solid #e5e5e5; color: #0f0f0f; }
-        .comment-input-box { display: flex; gap: 8px; }
-        .comment-input-box input { flex-grow: 1; background: #ffffff; border: 1px solid #ccc; padding: 8px; color: #0f0f0f; font-size: 13px; border-radius: 6px; outline: none; }
-        .comment-input-box button { background: #065fd4; border: none; color: white; padding: 0 14px; font-size: 13px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+        /* ショート動画カード */
+        .shorts-card { min-width: 160px; width: 160px; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+        .shorts-thumbnail { width: 100%; aspect-ratio: 9/16; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; background-size: cover; background-position: center; }
+        .shorts-title { font-size: 13px; font-weight: bold; color: #0f0f0f; line-height: 16px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        .shorts-views { font-size: 11px; color: #606060; }
 
-        /* ── 🆕 横並びショート動画セクション ── */
-        .shorts-section { border-top: 4px solid #f2f2f2; border-bottom: 4px solid #f2f2f2; padding: 24px 0; margin: 16px 0; }
-        .shorts-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; }
-        .shorts-card { display: flex; flex-direction: column; gap: 8px; cursor: pointer; }
-        .shorts-thumbnail { width: 100%; aspect-ratio: 9/16; background-color: #e5e5e5; border-radius: 12px; overflow: hidden; position: relative; background-size: cover; background-position: center; }
-        .shorts-title { font-size: 14px; font-weight: bold; color: #0f0f0f; line-height: 18px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        .shorts-views { font-size: 12px; color: #606060; }
+        /* ➡️ 設計図通りの「＞」次へスクロールボタン */
+        .scroll-next-btn { position: absolute; right: -15px; width: 40px; height: 40px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-weight: bold; }
+        .scroll-next-btn:hover { background-color: #f2f2f2; transform: scale(1.05); }
 
-        /* ── クリエイターダッシュボード（ポップアップ） ── */
-        .dashboard-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.6); z-index: 1000; display: none; justify-content: center; align-items: center; }
-        .dashboard-modal { background-color: #ffffff; width: 90%; max-width: 600px; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); color: #0f0f0f; }
+        /* コメントエリア */
+        .comment-section { background: #f8f8f8; padding: 10px; border-radius: 8px; margin-top: 6px; }
+        .comment-list { max-height: 80px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+        .comment-item { border-bottom: 1px solid #e5e5e5; padding: 2px 0; }
+        .comment-input-box { display: flex; gap: 6px; margin-top: 6px; }
+        .comment-input-box input { flex-grow: 1; border: 1px solid #ccc; padding: 6px; font-size: 12px; border-radius: 4px; outline: none; }
+        .comment-input-box button { background: #065fd4; border: none; color: white; padding: 0 10px; font-size: 11px; border-radius: 4px; cursor: pointer; }
+
+        /* ── 動画アップロード用ポップアップモーダル ── */
+        .dashboard-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .dashboard-modal { background-color: #ffffff; width: 90%; max-width: 600px; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
         .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 12px; }
-        .dashboard-header h2 { font-size: 20px; display: flex; align-items: center; gap: 8px; }
         .close-dashboard-btn { background: none; border: none; color: #606060; font-size: 28px; cursor: pointer; }
-        
         .upload-form-group { display: flex; flex-direction: column; gap: 16px; }
-        .upload-form-group input[type="text"] { background: #fff; border: 1px solid #ccc; padding: 12px; color: #0f0f0f; border-radius: 8px; font-size: 14px; outline: none; width: 100%; }
-        .upload-form-group input[type="text"]:focus { border-color: #065fd4; }
+        .upload-form-group input[type="text"] { border: 1px solid #ccc; padding: 12px; border-radius: 8px; font-size: 14px; outline: none; width: 100%; }
         .file-input-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .file-box { background: #f8f8f8; padding: 16px; border-radius: 8px; border: 1px dashed #ccc; text-align: center; }
         .file-box label { display: block; font-size: 13px; color: #606060; margin-bottom: 8px; font-weight: bold; }
-        .file-box input[type="file"] { font-size: 12px; color: #606060; }
-        .dashboard-footer { border-top: 1px solid #eee; padding-top: 14px; display: flex; justify-content: flex-end; }
         .submit-btn { background-color: #cc0000; color: white; border: none; padding: 10px 24px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
-        .submit-btn:hover { background-color: #990000; }
     </style>
 </head>
 <body>
@@ -100,52 +113,85 @@
     <header>
         <div class="header-left">
             <div class="menu-icon">☰</div>
-            <a href="#" class="logo"><span>🛑</span>YouTube</a>
+            <a href="#" class="logo" id="logoHome"><span>🛑</span>YouTube</a>
         </div>
         <div class="header-center">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="検索">
+                <input type="text" id="searchInput" placeholder="検索欄(動画検索できる)">
                 <button id="searchBtn">🔍</button>
             </div>
         </div>
         <div class="header-right">
-            <button id="dashboardOpenBtn" class="dashboard-trigger-btn">🎬 作成</button>
-            <div id="userInfo" class="user-info"></div>
-            <button id="authBtn" class="auth-btn">👤 ログイン</button>
+            <button class="notification-btn">🔔<span class="notification-badge">3</span></button>
+            
+            <div id="userInfo" class="user-info-text"></div>
+            <button id="authBtn" class="account-avatar">👤</button>
+
+            <div id="accountMenu" class="account-menu">
+                <button id="menuNewPost" class="account-menu-item">🎥 新規投稿</button>
+                <button onclick="alert('ライブ配信機能を準備中!')" class="account-menu-item">🔴 ライブ配信</button>
+                <button onclick="alert('アカウント設定を開きます')" class="account-menu-item">⚙️ アカウント設定</button>
+                <button id="menuLogout" class="account-menu-item logout">🚪 ログアウト</button>
+            </div>
         </div>
     </header>
 
     <div class="main-container">
         <aside>
-            <div class="nav-item active">🏠 ホーム</div>
-            <div class="nav-item">🩳 ショート</div>
-            <div class="nav-item">🔔 登録チャンネル</div>
-            <div class="nav-item">📁 ライブラリ</div>
+            <div class="nav-item active" id="sideHome">🏠 ホーム</div>
+            <div class="nav-item" onclick="alert('ショート動画を読み込みます')">🩳 ショート</div>
+            <div class="nav-item" onclick="alert('登録チャンネルを表示します')">🔔 登録者</div>
+            <div class="nav-item" onclick="alert('その他の項目です')">📁 なんか</div>
+            <div class="nav-item" onclick="alert('設定画面を開きます')">⚙️ 設定</div>
         </aside>
 
         <div class="content-wrapper">
             
-            <div>
-                <div class="video-grid" id="videoGrid"></div>
+            <div class="section-container">
+                <div class="section-title">通知</div>
+                <div class="notification-row">
+                    <div class="creator-avatar" title="自分が登録した人のアイコン"></div>
+                    <div class="creator-avatar creator-avatar2"></div>
+                    <div class="creator-avatar creator-avatar3"></div>
+                    
+                    <div class="notification-card">
+                        <div class="noti-thumb"></div>
+                        <div class="noti-text">
+                            <p>タイヤキ_taiyaki_ がアップロードしました</p>
+                            <span>【驚愕】開始1秒で3人同時に... ・ 5分前</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="shorts-section">
-                <div class="section-title">⚡ ショート</div>
-                <div class="shorts-container">
-                    <div class="shorts-card">
-                        <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400');"></div>
-                        <p class="shorts-title">【ツムツム】死者の国の死神ハデスがやばすぎるww</p>
-                        <p class="shorts-views">1100回視聴</p>
-                    </div>
-                    <div class="shorts-card">
-                        <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400');"></div>
-                        <p class="shorts-title">2025年に流行ったボカロ曲まとめ</p>
-                        <p class="shorts-views">183万回視聴</p>
-                    </div>
-                    <div class="shorts-card">
-                        <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400');"></div>
-                        <p class="shorts-title">ハンバーガー積みって知ってる？...</p>
-                        <p class="shorts-views">75万回視聴</p>
+            <div class="section-container">
+                <div class="section-title">おすすめ</div>
+                <div class="horizontal-scroll-wrapper">
+                    <div class="video-grid-horizontal" id="videoGrid">
+                        </div>
+                    <button class="scroll-next-btn" id="scrollNextVideos">＞</button>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-title">ショート</div>
+                <div class="horizontal-scroll-wrapper">
+                    <div class="video-grid-horizontal">
+                        <div class="shorts-card">
+                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400');"></div>
+                            <p class="shorts-title">【ツムツム】死者の国の死神ハデスがやばすぎるww</p>
+                            <p class="shorts-views">日付・時刻 再生数</p>
+                        </div>
+                        <div class="shorts-card">
+                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400');"></div>
+                            <p class="shorts-title">2025年に流行ったボカロ曲まとめ</p>
+                            <p class="shorts-views">日付・時刻 再生数</p>
+                        </div>
+                        <div class="shorts-card">
+                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400');"></div>
+                            <p class="shorts-title">ハンバーガー積みって知ってる？...</p>
+                            <p class="shorts-views">日付・時刻 再生数</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -156,7 +202,7 @@
     <div id="dashboardOverlay" class="dashboard-overlay">
         <div class="dashboard-modal">
             <div class="dashboard-header">
-                <h2>🎬 動画のアップロード</h2>
+                <h2>🎥 動画のアップロード（新規投稿）</h2>
                 <button id="dashboardCloseBtn" class="close-dashboard-btn">×</button>
             </div>
             
@@ -184,5 +230,39 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
+
+    <script>
+        // アカウント画像クリックでドロップダウンを切り替え
+        const authBtn = document.getElementById('authBtn');
+        const accountMenu = document.getElementById('accountMenu');
+        
+        authBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (accountMenu.style.display === 'flex') {
+                accountMenu.style.display = 'none';
+            } else {
+                accountMenu.style.display = 'flex';
+            }
+        });
+
+        // 画面のどこかをクリックしたらメニューを閉じる
+        document.addEventListener('click', () => {
+            accountMenu.style.display = 'none';
+        });
+
+        // ロゴやホームを押したら画面をリロードしてホームに戻る
+        document.getElementById('logoHome').addEventListener('click', () => location.reload());
+        document.getElementById('sideHome').addEventListener('click', () => location.reload());
+
+        // 「新規投稿」を押したときにダッシュボードを開く
+        document.getElementById('menuNewPost').addEventListener('click', () => {
+            document.getElementById('dashboardOverlay').style.display = 'flex';
+        });
+
+        // 「＞」ボタンで横スクロールさせる制御
+        document.getElementById('scrollNextVideos').addEventListener('click', () => {
+            document.getElementById('videoGrid').scrollBy({ left: 300, behavior: 'smooth' });
+        });
+    </script>
 </body>
 </html>
