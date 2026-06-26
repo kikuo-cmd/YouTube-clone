@@ -91,4 +91,203 @@
 
         /* 次へスクロールボタン */
         .scroll-next-btn { position: absolute; right: -15px; width: 40px; height: 40px; background-color: #ffffff; border: 1px solid #ccc; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 10; font-weight: bold; }
-        .scroll-next-btn:hover { background-color: #
+        .scroll-next-btn:hover { background-color: #f2f2f2; transform: scale(1.05); }
+
+        /* コメントエリア */
+        .comment-section { background: #f8f8f8; padding: 10px; border-radius: 8px; margin-top: 6px; }
+        .comment-list { max-height: 80px; overflow-y: auto; font-size: 12px; display: flex; flex-direction: column; gap: 4px; }
+        .comment-item { border-bottom: 1px solid #e5e5e5; padding: 2px 0; }
+        .comment-input-box { display: flex; gap: 6px; margin-top: 6px; }
+        .comment-input-box input { flex-grow: 1; border: 1px solid #ccc; padding: 6px; font-size: 12px; border-radius: 4px; outline: none; }
+        .comment-input-box button { background: #065fd4; border: none; color: white; padding: 0 10px; font-size: 11px; border-radius: 4px; cursor: pointer; }
+
+        /* ── 動画アップロード用ポップアップモーダル（投稿・ライブ配信兼用） ── */
+        .dashboard-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); z-index: 1000; display: none; justify-content: center; align-items: center; }
+        .dashboard-modal { background-color: #ffffff; width: 90%; max-width: 600px; border-radius: 16px; padding: 24px; display: flex; flex-direction: column; gap: 20px; box-shadow: 0 4px 24px rgba(0,0,0,0.2); }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 12px; }
+        .dashboard-title-text { font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .close-dashboard-btn { background: none; border: none; color: #606060; font-size: 28px; cursor: pointer; }
+        .upload-form-group { display: flex; flex-direction: column; gap: 16px; }
+        .upload-form-group input[type="text"] { border: 1px solid #ccc; padding: 12px; border-radius: 8px; font-size: 14px; outline: none; width: 100%; }
+        .file-input-wrapper { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .file-box { background: #f8f8f8; padding: 16px; border-radius: 8px; border: 1px dashed #ccc; text-align: center; }
+        .file-box label { display: block; font-size: 13px; color: #606060; margin-bottom: 8px; font-weight: bold; }
+        .submit-btn { background-color: #cc0000; color: white; border: none; padding: 10px 24px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <div class="menu-icon">☰</div>
+            <a href="#" class="logo" id="logoHome"><span>🛑</span>YouTube</a>
+        </div>
+        <div class="header-center">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="検索欄(動画検索できる)">
+                <button id="searchBtn">🔍</button>
+            </div>
+        </div>
+        <div class="header-right">
+            <button class="notification-btn">🔔<span class="notification-badge">3</span></button>
+            
+            <div id="userInfo" class="user-info-text"></div>
+            <button id="authBtn" class="account-avatar">👤</button>
+
+            <div id="accountMenu" class="account-menu">
+                <button id="menuNewPost" class="account-menu-item">🎥 新規投稿</button>
+                <button id="menuLive" class="account-menu-item">🔴 ライブ配信</button>
+                <button id="menuSetting" class="account-menu-item">⚙️ アカウント設定</button>
+                <button id="menuLogout" class="account-menu-item logout">🚪 ログアウト</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside>
+            <div class="nav-item active" id="sideHome">🏠 ホーム</div>
+            <div class="nav-item" id="sideShorts">🩳 ショート</div>
+            <div class="nav-item" id="sideSubs">🔔 登録者</div>
+            <div class="nav-item" id="sideTrending">🔥 トレンド</div>
+            <div class="nav-item" id="sideSetting">⚙️ 設定</div>
+        </aside>
+
+        <div class="content-wrapper">
+            
+            <div class="section-container">
+                <div class="section-title">通知</div>
+                <div class="notification-row">
+                    <div class="creator-avatar" title="登録チャンネルのアイコン"></div>
+                    <div class="creator-avatar creator-avatar2"></div>
+                    <div class="creator-avatar creator-avatar3"></div>
+                    
+                    <div class="notification-card">
+                        <div class="noti-thumb"></div>
+                        <div class="noti-text">
+                            <p>タイヤキ_taiyaki_ がアップロードしました</p>
+                            <span>【驚愕】開始1秒で3人同時に... ・ 5分前</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-title">おすすめ</div>
+                <div class="horizontal-scroll-wrapper">
+                    <div class="video-grid-horizontal" id="videoGrid">
+                        <div class="no-videos-message">読み込み中、または投稿された動画がありません。</div>
+                    </div>
+                    <button class="scroll-next-btn" id="scrollNextVideos">＞</button>
+                </div>
+            </div>
+
+            <div class="section-container">
+                <div class="section-title">ショート</div>
+                <div class="horizontal-scroll-wrapper">
+                    <div class="video-grid-horizontal" id="shortsGrid">
+                        <div class="shorts-card" onclick="alert('ショート動画を再生します！')">
+                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1542751371-adc38448a05e?w=400');"></div>
+                            <p class="shorts-title">【ツムツム】死者の国の死神ハデスがやばすぎるww</p>
+                            <p class="shorts-views">日付・時刻 再生数</p>
+                        </div>
+                        <div class="shorts-card" onclick="alert('ショート動画を再生します！')">
+                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?w=400');"></div>
+                            <p class="shorts-title">2025年に流行ったボカロ曲まとめ</p>
+                            <p class="shorts-views">日付・時刻 再生数</p>
+                        </div>
+                        <div class="shorts-card" onclick="alert('ショート動画を再生します！')">
+                            <div class="shorts-thumbnail" style="background-image: url('https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=400');"></div>
+                            <p class="shorts-title">ハンバーガー積みって知ってる？...</p>
+                            <p class="shorts-views">日付・時刻 再生数</p>
+                        </div>
+                    </div>
+                    <button class="scroll-next-btn" id="scrollNextShorts">＞</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="dashboardOverlay" class="dashboard-overlay">
+        <div class="dashboard-modal">
+            <div class="dashboard-header">
+                <h2 id="modalTitle" class="dashboard-title-text">🎥 動画のアップロード（新規投稿）</h2>
+                <button id="dashboardCloseBtn" class="close-dashboard-btn">×</button>
+            </div>
+            
+            <div class="upload-form-group">
+                <div>
+                    <input type="text" id="videoTitle" placeholder="タイトルを追加（必須）">
+                </div>
+                <div class="file-input-wrapper">
+                    <div class="file-box">
+                        <label id="fileLabelVideo">🎥 動画ファイル</label>
+                        <input type="file" id="videoFile" accept="video/*">
+                    </div>
+                    <div class="file-box">
+                        <label id="fileLabelThumb">🖼️ サムネイル（任意）</label>
+                        <input type="file" id="thumbFile" accept="image/*">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-footer">
+                <button id="uploadBtn" class="submit-btn">公開</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+
+    <script>
+        const authBtn = document.getElementById('authBtn');
+        const accountMenu = document.getElementById('accountMenu');
+        const dashboardOverlay = document.getElementById('dashboardOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+
+        // アカウント画像クリックでドロップダウン表示
+        authBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            accountMenu.style.display = accountMenu.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        document.addEventListener('click', () => { accountMenu.style.display = 'none'; });
+
+        // ロゴ・ホームボタンを押したら画面リロードして初期化
+        document.getElementById('logoHome').addEventListener('click', () => location.reload());
+        document.getElementById('sideHome').addEventListener('click', () => location.reload());
+
+        // 🎥 「新規投稿」をクリックした時の連動
+        document.getElementById('menuNewPost').addEventListener('click', () => {
+            modalTitle.innerHTML = '🎥 動画のアップロード（新規投稿）';
+            dashboardOverlay.style.display = 'flex';
+        });
+
+        // 🔴 「ライブ配信」をクリックした時の連動（モーダルをライブ風に切り替え）
+        document.getElementById('menuLive').addEventListener('click', () => {
+            modalTitle.innerHTML = '🔴 ライブ配信の設定（準備）';
+            alert("ライブ配信機能のシミュレーションを開始するでやんす！配信用タイトルを入力して公開ボタンを押してね。");
+            dashboardOverlay.style.display = 'flex';
+        });
+
+        // ⚙️ アカウント設定・サイドバー設定
+        const openSetting = () => alert('アカウント設定画面を開きました！');
+        document.getElementById('menuSetting').addEventListener('click', openSetting);
+        document.getElementById('sideSetting').addEventListener('click', openSetting);
+
+        // 各種サイドバーボタンのクリックイベント
+        document.getElementById('sideShorts').addEventListener('click', () => alert('🩳 ショート動画セクションへジャンプ！'));
+        document.getElementById('sideSubs').addEventListener('click', () => alert('🔔 登録しているクリエイターの一覧です！'));
+        document.getElementById('sideTrending').addEventListener('click', () => alert('🔥 今話題のトレンド動画一覧です！'));
+
+        // 「＞」ボタンによる横スクロール制御
+        document.getElementById('scrollNextVideos').addEventListener('click', () => {
+            document.getElementById('videoGrid').scrollBy({ left: 300, behavior: 'smooth' });
+        });
+        document.getElementById('scrollNextShorts').addEventListener('click', () => {
+            document.getElementById('shortsGrid').scrollBy({ left: 200, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
