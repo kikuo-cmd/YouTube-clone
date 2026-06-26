@@ -21,6 +21,8 @@
         
         .header-right { display: flex; align-items: center; gap: 12px; }
         .auth-btn { background-color: #1c62b9; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .dashboard-trigger-btn { background-color: #272727; color: white; border: 1px solid #444; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 14px; display: none; }
+        .dashboard-trigger-btn:hover { background-color: #3f3f3f; }
         .user-info { font-size: 14px; color: #aaa; display: flex; align-items: center; gap: 8px; }
 
         /* メインレイアウト */
@@ -34,17 +36,6 @@
         /* コンテンツエリア */
         .content-wrapper { flex-grow: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 24px; }
         
-        /* 投稿フォーム */
-        .upload-box { background: #212121; padding: 20px; border-radius: 12px; border: 1px solid #303030; max-width: 800px; margin: 0 auto; width: 100%; display: none; }
-        .upload-box h3 { margin-bottom: 12px; font-size: 18px; }
-        .upload-form-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px; }
-        .upload-box input[type="text"] { background: #121212; border: 1px solid #303030; padding: 10px; color: #fff; border-radius: 6px; font-size: 14px; outline: none; width: 100%; }
-        .upload-box label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; }
-        .upload-box button { background-color: #cc0000; color: white; border: none; padding: 10px 24px; border-radius: 20px; font-weight: bold; cursor: pointer; float: right; }
-        
-        /* ログイン催促メッセージ */
-        .login-alert-box { text-align: center; padding: 30px; background: #212121; border-radius: 12px; border: 1px solid #303030; max-width: 800px; margin: 0 auto; width: 100%; }
-
         /* 動画グリッド */
         .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-top: 16px; }
         .video-card { background: transparent; display: flex; flex-direction: column; gap: 12px; position: relative; }
@@ -65,65 +56,4 @@
         /* コメント欄エリア */
         .comment-section { background: #1a1a1a; padding: 12px; border-radius: 8px; margin-top: 8px; }
         .comment-list { max-height: 100px; overflow-y: auto; font-size: 12px; margin-bottom: 8px; display: flex; flex-direction: column; gap: 4px; }
-        .comment-item { padding: 4px; border-bottom: 1px solid #2a2a2a; color: #ccc; }
-        .comment-input-box { display: flex; gap: 6px; }
-        .comment-input-box input { flex-grow: 1; background: #2b2b2b; border: 1px solid #444; padding: 6px; color: #fff; font-size: 12px; border-radius: 4px; outline: none; }
-        .comment-input-box button { background: #3a3a3a; border: none; color: white; padding: 0 10px; font-size: 12px; border-radius: 4px; cursor: pointer; }
-    </style>
-</head>
-<body>
-
-    <header>
-        <div class="header-left">
-            <a href="#" class="logo"><span>🛑</span>YouTube Clone</a>
-        </div>
-        <div class="header-center">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="検索">
-                <button id="searchBtn">🔍</button>
-            </div>
-        </div>
-        <div class="header-right">
-            <div id="userInfo" class="user-info"></div>
-            <button id="authBtn" class="auth-btn">ログイン</button>
-        </div>
-    </header>
-
-    <div class="main-container">
-        <aside>
-            <div class="nav-item active" onclick="alert('ホーム画面です')">🏠 ホーム</div>
-            <div class="nav-item" onclick="alert('ショート動画は準備中です')">🩳 ショート</div>
-            <div class="nav-item" onclick="alert('登録チャンネルは準備中です')">🔔 登録チャンネル</div>
-            <div class="nav-item" onclick="alert('ライブラリは準備中です')">📁 ライブラリ</div>
-        </aside>
-
-        <div class="content-wrapper">
-            <div id="loginAlert" class="login-alert-box">
-                <p style="color: #aaa; margin-bottom: 10px;">動画をアップロードするにはログインが必要です。</p>
-            </div>
-
-            <div id="uploadBox" class="upload-box">
-                <h3>動画をアップロード</h3>
-                <div class="upload-form-group">
-                    <div><input type="text" id="videoTitle" placeholder="タイトルを追加"></div>
-                    <div>
-                        <label>動画ファイル</label>
-                        <input type="file" id="videoFile" accept="video/*">
-                    </div>
-                    <div>
-                        <label>サムネイル画像</label>
-                        <input type="file" id="thumbFile" accept="image/*">
-                    </div>
-                </div>
-                <button id="uploadBtn">公開</button>
-                <div style="clear: both;"></div>
-            </div>
-
-            <div class="video-grid" id="videoGrid"></div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="app.js"></script>
-</body>
-</html>
+        .comment-item { padding: 4px; border-bottom: 1px solid #2a2a2a; color: #
